@@ -17,4 +17,4 @@
 using namespace std;
 using namespace glm;
 
-void drawMesh(string fileWithMesh);
+void drawMesh(Mesh mesh);

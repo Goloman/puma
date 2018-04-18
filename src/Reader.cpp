@@ -6,6 +6,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <GL/glew.h>
+#include <SDL2/SDL_opengl.h>
+
 Mesh readMesh(string file) {
 	ifstream myfile;
 	myfile.open(file);
@@ -65,5 +68,19 @@ Mesh readMesh(string file) {
 
 		myfile.close();
 	}
+
+    glGenVertexArrays(1, &ret.vao);
+    glBindVertexArray(ret.vao);
+
+    glGenBuffers( 1, &ret.vertexBuffer );
+    glBindBuffer( GL_ARRAY_BUFFER, ret.vertexBuffer );
+
+    glGenBuffers(1, &ret.indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ret.indexBuffer);
+
+	glBufferData(GL_ARRAY_BUFFER, (ret.positions.size()) * sizeof(glm::vec3), &ret.positions[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ret.indices.size() * sizeof(unsigned int), &ret.indices[0], GL_STATIC_DRAW);
+
+
 	return ret;
 }

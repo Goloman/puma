@@ -51,10 +51,6 @@ int main() {
     glewExperimental = GL_TRUE;
     glewInit();
 
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexSource, NULL);
     glCompileShader(vertexShader);
@@ -70,15 +66,6 @@ int main() {
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    GLuint vbo;
-    glGenBuffers( 1, &vbo );
-    glBindBuffer( GL_ARRAY_BUFFER, vbo );
-
-    GLuint indexBuffer;
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(posAttrib);
@@ -89,6 +76,13 @@ int main() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(getWorldMatrix()));
     int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(getProjectionMatrix(1000, 1000)));
+
+    Mesh m1 = readMesh("resources/mesh1.txt");
+    Mesh m2 = readMesh("resources/mesh2.txt");
+    Mesh m3 = readMesh("resources/mesh3.txt");
+    Mesh m4 = readMesh("resources/mesh4.txt");
+    Mesh m5 = readMesh("resources/mesh5.txt");
+    Mesh m6 = readMesh("resources/mesh6.txt");
 
     bool running = true;
     while (running) {
@@ -103,12 +97,12 @@ int main() {
         float angle = SDL_GetTicks() / 10.0f;
         modelLoc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix(angle)));
-        drawMesh("resources/mesh1.txt");
-        drawMesh("resources/mesh2.txt");
-        drawMesh("resources/mesh3.txt");
-        drawMesh("resources/mesh4.txt");
-        drawMesh("resources/mesh5.txt");
-        drawMesh("resources/mesh6.txt");
+        drawMesh(m1);
+        drawMesh(m2);
+        drawMesh(m3);
+        drawMesh(m4);
+        drawMesh(m5);
+        drawMesh(m6);
         SDL_GL_SwapWindow(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
