@@ -22,6 +22,7 @@ const char* vertexSource = R"glsl(
     void main()
     {
         gl_Position =  projection * view * model  * vec4(position, 1.0);
+        gl_Position =  model  * vec4(position, 1.0);
     }
 )glsl";
 
@@ -80,32 +81,37 @@ int main() {
     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(posAttrib);
 
-	int modelLoc = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix()));
-	int viewLoc = glGetUniformLocation(shaderProgram, "view");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(getWorldMatrix()));
-	int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(getProjectionMatrix(1000, 1000)));
+    int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix()));
+    int viewLoc = glGetUniformLocation(shaderProgram, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(getWorldMatrix()));
+    int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(getProjectionMatrix(1000, 1000)));
 
-	while (true) {
-		for (int i = 1; i < 36; i++) {
-			float angle = 10.0f * i;
-			modelLoc = glGetUniformLocation(shaderProgram, "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix(angle)));
-			drawMesh("resources/mesh1.txt");
-			drawMesh("resources/mesh2.txt");
-			drawMesh("resources/mesh3.txt");
-			drawMesh("resources/mesh4.txt");
-			drawMesh("resources/mesh5.txt");
-			drawMesh("resources/mesh6.txt");
-			SDL_GL_SwapWindow(window);
-			SDL_Delay(5);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}
-	}
+    bool running = true;
+    while (running) {
 
-    SDL_Delay(20000);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
+            /* handle your event here */
+        }
+        float angle = SDL_GetTicks() / 10.0f;
+        modelLoc = glGetUniformLocation(shaderProgram, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix(angle)));
+        drawMesh("resources/mesh1.txt");
+        drawMesh("resources/mesh2.txt");
+        drawMesh("resources/mesh3.txt");
+        drawMesh("resources/mesh4.txt");
+        drawMesh("resources/mesh5.txt");
+        drawMesh("resources/mesh6.txt");
+        SDL_GL_SwapWindow(window);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow( window );
