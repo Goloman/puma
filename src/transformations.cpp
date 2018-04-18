@@ -1,4 +1,4 @@
-#include "Transformations.h"
+#include "transformations.h"
 
 mat4 getModelMatrix(float angle) {
 	mat4 model;

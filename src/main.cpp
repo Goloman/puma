@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "transformations.h";
+#include "transformations.h"
 #include "Reader.h"
 #include "draw.h"
 
