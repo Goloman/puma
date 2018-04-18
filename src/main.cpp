@@ -46,6 +46,8 @@ int main() {
 
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
+    SDL_GL_SetSwapInterval(1);
+
     glewExperimental = GL_TRUE;
     glewInit();
 
