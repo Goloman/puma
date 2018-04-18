@@ -35,7 +35,9 @@ const char* fragmentSource = R"glsl(
 int main() {
 
 	// get vertices from mesh	
-	vector<vec3> vertices = readMesh("resources/mesh1.txt");
+	Mesh mesh = readMesh("resources/mesh1.txt");
+	vector<vec3> vertices = mesh.positions;
+	vector<unsigned int> indices = mesh.indices;
 	vec3* _vertices = &vertices[0];
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 500, 500, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
@@ -67,22 +69,24 @@ int main() {
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-   /* vec2 vertices[3] = {
-        {-0.5, -0.5},
-        {-0.5, 0.5},
-        {0.5, 0},
-    };*/
     GLuint vbo;
     glGenBuffers( 1, &vbo );
     glBindBuffer( GL_ARRAY_BUFFER, vbo );
+
+    GLuint indexBuffer;
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
 
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(posAttrib);
 
     glBufferData( GL_ARRAY_BUFFER, (vertices.size()) * sizeof(glm::vec3), _vertices, GL_STATIC_DRAW );
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(window);
     SDL_Delay(2000);
