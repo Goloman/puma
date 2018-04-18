@@ -1,7 +1,7 @@
 
 
-puma: src/main.cpp
-	clang -lSDL2 -lGL -lGLEW src/main.cpp -o puma
+puma: src/*.cpp
+	clang++ -lSDL2 -lGL -lGLEW -std=c++11 src/*.cpp -o puma
 
 .PHONY: clean
 

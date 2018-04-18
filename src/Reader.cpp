@@ -7,7 +7,7 @@ vector<vec3> readMesh(string file) {
 	ifstream myfile;
 	myfile.open(file);
 	if (myfile.fail()) {
-		throw exception("Musisz sobie podmieniæ œcie¿ke do pliku");
+		throw runtime_error("Musisz sobie podmieniæ œcie¿ke do pliku");
 		cout << "Problem with opening file " + file;
 	}
 	string line;

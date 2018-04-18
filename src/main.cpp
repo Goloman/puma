@@ -5,7 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "./Reader.h";
+
+#include "Reader.h"
 
 using namespace glm;
 using namespace std;
@@ -34,7 +35,7 @@ const char* fragmentSource = R"glsl(
 int main() {
 
 	// get vertices from mesh	
-	vector<vec3> vertices = readMesh("C:\\Users\\posejdon256\\Documents\\Grafika\\puma\\resources\\mesh1.txt");
+	vector<vec3> vertices = readMesh("resources/mesh1.txt");
 	vec3* _vertices = &vertices[0];
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 500, 500, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
@@ -76,7 +77,7 @@ int main() {
     glBindBuffer( GL_ARRAY_BUFFER, vbo );
 
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(posAttrib);
 
     glBufferData( GL_ARRAY_BUFFER, (vertices.size()) * sizeof(glm::vec3), _vertices, GL_STATIC_DRAW );
