@@ -6,7 +6,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "transformations.h";
 #include "Reader.h"
+#include "draw.h"
 
 using namespace glm;
 using namespace std;
@@ -19,7 +21,7 @@ const char* vertexSource = R"glsl(
 	uniform mat4 projection;
     void main()
     {
-        gl_Position = vec4(position, 1.0);
+        gl_Position =  projection * view * model  * vec4(position, 1.0);
     }
 )glsl";
 
@@ -35,12 +37,8 @@ const char* fragmentSource = R"glsl(
 int main() {
 
 	// get vertices from mesh	
-	Mesh mesh = readMesh("resources/mesh1.txt");
-	vector<vec3> vertices = mesh.positions;
-	vector<unsigned int> indices = mesh.indices;
-	vec3* _vertices = &vertices[0];
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 500, 500, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 900, 900, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
@@ -82,15 +80,32 @@ int main() {
     glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(posAttrib);
 
-    glBufferData( GL_ARRAY_BUFFER, (vertices.size()) * sizeof(glm::vec3), _vertices, GL_STATIC_DRAW );
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+	int modelLoc = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix()));
+	int viewLoc = glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(getWorldMatrix()));
+	int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(getProjectionMatrix(1000, 1000)));
 
-    //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	while (true) {
+		for (int i = 1; i < 36; i++) {
+			float angle = 10.0f * i;
+			modelLoc = glGetUniformLocation(shaderProgram, "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix(angle)));
+			drawMesh("resources/mesh1.txt");
+			drawMesh("resources/mesh2.txt");
+			drawMesh("resources/mesh3.txt");
+			drawMesh("resources/mesh4.txt");
+			drawMesh("resources/mesh5.txt");
+			drawMesh("resources/mesh6.txt");
+			SDL_GL_SwapWindow(window);
+			SDL_Delay(5);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
 
-    SDL_GL_SwapWindow(window);
-    SDL_Delay(2000);
-
+    SDL_Delay(20000);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow( window );

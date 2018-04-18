@@ -139,11 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\draw.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Reader.cpp" />
+    <ClCompile Include="src\reader.cpp" />
+    <ClCompile Include="src\transformations.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Reader.h" />
+    <ClInclude Include="src\draw.h" />
+    <ClInclude Include="src\mesh.h" />
+    <ClInclude Include="src\reader.h" />
+    <ClInclude Include="src\transformations.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

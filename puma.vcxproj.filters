@@ -16,17 +16,44 @@
     <Filter Include="Source Files\Reader">
       <UniqueIdentifier>{a67c20dd-ffc7-4276-ae0e-f681b5aa1d4f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Transformations">
+      <UniqueIdentifier>{e2585107-c3e6-480e-905a-a5d2e0489597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Draw">
+      <UniqueIdentifier>{0c1811db-fedf-468e-81e6-035f0f23493e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Draw">
+      <UniqueIdentifier>{5a602edc-7f08-4659-a83e-53bb302cf43d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Transformations">
+      <UniqueIdentifier>{0886d7f8-4354-4e23-ae66-6250511f5662}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Reader.cpp">
+    <ClCompile Include="src\draw.cpp">
+      <Filter>Source Files\Draw</Filter>
+    </ClCompile>
+    <ClCompile Include="src\reader.cpp">
       <Filter>Source Files\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\transformations.cpp">
+      <Filter>Source Files\Transformations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Reader.h">
+    <ClInclude Include="src\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\transformations.h">
+      <Filter>Header Files\Transformations</Filter>
+    </ClInclude>
+    <ClInclude Include="src\draw.h">
+      <Filter>Header Files\Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="src\reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
