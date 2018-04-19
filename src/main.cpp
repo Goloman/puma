@@ -22,7 +22,7 @@ const char* vertexSource = R"glsl(
     void main()
     {
         gl_Position =  projection * view * model  * vec4(position, 1.0);
-        gl_Position =  model  * vec4(position, 1.0);
+        //gl_Position =  projection * model  * vec4(position, 1.0);
     }
 )glsl";
 
@@ -97,6 +97,9 @@ int main() {
         float angle = SDL_GetTicks() / 10.0f;
         modelLoc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(getModelMatrix(angle)));
+		mat4 id(1);
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(glm::translate(id, {0, 0, -5})));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, value_ptr(glm::perspective(1.5f, 1.0f, 0.01f, 20.0f)));
         drawMesh(m1);
         drawMesh(m2);
         drawMesh(m3);

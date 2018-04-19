@@ -2,7 +2,8 @@
 
 mat4 getModelMatrix(float angle) {
 	mat4 model(1);
-	model = glm::rotate(model, radians(angle), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, radians(angle), vec3(0.0f, 1.0f, 0.0f));
+	//model = glm::rotate(model, radians(angle / glm::pi<float>()), vec3(1.0f, 0.0f, 0.0f));
 	return model;
 }
 mat4 getWorldMatrix() {
