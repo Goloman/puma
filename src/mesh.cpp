@@ -74,14 +74,7 @@ puma::Mesh puma::Mesh::load(const char* filename) {
     glBufferData(GL_ARRAY_BUFFER, (ret.positions.size()) * sizeof(glm::vec3), &ret.positions[0], GL_STATIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ret.indices.size() * sizeof(unsigned int), &ret.indices[0], GL_STATIC_DRAW);
 
-        glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                sizeof(glm::vec3),                  // stride
-                (void*)0            // array buffer offset
-                );
+    glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 
     return ret;
 }

@@ -15,17 +15,6 @@ public:
     void run();
 
 private:
-    static const int SHADER_LOCATION_POSITION = 0;
-    static const int SHADER_LOCATION_NORMAL = 1;
-    static const int SHADER_LOCATION_TEXTURE_COORDINATE = 2;
-    static const int SHADER_LOCATION_VELOCITY = 3;
-    static const int SHADER_LOCATION_AGE = 4;
-
-    static const int SHADER_UNIFORM_LOCATION_MODEL = 10;
-    static const int SHADER_UNIFORM_LOCATION_VIEW = 11;
-    static const int SHADER_UNIFORM_LOCATION_PROJECTION = 12;
-    static const int SHADER_UNIFORM_LOCATION_LIGHT_POSITION = 13;
-
     void init();
     void loop();
     void cleanup();
