@@ -18,11 +18,20 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\mesh.cpp" />
+    <ClCompile Include="src\puma.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\mesh.hpp" />
+    <ClInclude Include="src\puma.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B77AE2C7-534F-444B-88B9-2AC4C8E78C6E}</ProjectGuid>
     <RootNamespace>puma</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -138,18 +147,6 @@
       </SubSystem>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\draw.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\reader.cpp" />
-    <ClCompile Include="src\transformations.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\draw.h" />
-    <ClInclude Include="src\mesh.h" />
-    <ClInclude Include="src\reader.h" />
-    <ClInclude Include="src\transformations.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
