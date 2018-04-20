@@ -98,12 +98,12 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
     int length = f.tellg();
     f.seekg(0, std::ios::beg);
 
-    char buffer[length];
+    char* buffer = new char[length];
     f.read(buffer, length);
     f.close();
 
-    char *start = buffer;
-    glShaderSource(shader, 1, &start, &length);
+    //char *start = buffer;
+    glShaderSource(shader, 1, &buffer, &length);
     glCompileShader(shader);
 
     int  success;
@@ -114,6 +114,8 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
         SDL_Log("%s:\n%s", filename, log);
         throw std::runtime_error("Shader compilation failed");
     }
+
+	delete[] buffer;
     return shader;
 }
 
