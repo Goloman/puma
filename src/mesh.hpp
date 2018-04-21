@@ -19,7 +19,6 @@ const int SHADER_UNIFORM_LOCATION_VIEW = 11;
 const int SHADER_UNIFORM_LOCATION_PROJECTION = 12;
 const int SHADER_UNIFORM_LOCATION_LIGHT_POSITION = 13;
 
-
 struct Mesh {
     GLuint vao;
     GLuint vertexBuffer;
