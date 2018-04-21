@@ -37,6 +37,13 @@ private:
     GLuint phongProgram;
 
     bool running;
+
+    Uint32 lastTicks;
+    float dt;
+
+    bool movingCamera;
+    glm::vec3 cameraPosition;
+    glm::vec2 cameraRotationDegrees;
 };
 
 }

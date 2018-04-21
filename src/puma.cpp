@@ -61,6 +61,12 @@ void puma::Puma::init() {
     robotMesh[5] = Mesh::load("resources/mesh6.txt");
 
     projectiomMatrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 20.f);
+
+    movingCamera = false;
+    cameraPosition = {0, 0, 5};
+    cameraRotationDegrees = {0, 0};
+
+    lastTicks = SDL_GetTicks();
 }
 
 void puma::Puma::loop() {
@@ -80,8 +86,26 @@ void puma::Puma::handleEvents() {
         switch (event.type) {
         case SDL_QUIT: {
             running = false;
-            break;
+            } break;
+        case SDL_MOUSEMOTION: {
+            if (movingCamera) {
+                cameraRotationDegrees += glm::vec2(event.motion.yrel, event.motion.xrel);
+                cameraRotationDegrees.x = glm::clamp(cameraRotationDegrees.x, -90.f, 90.f);
+                cameraRotationDegrees.y = fmod(cameraRotationDegrees.y, 360);
             }
+            } break;
+        case SDL_MOUSEBUTTONDOWN: {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                SDL_SetRelativeMouseMode(SDL_TRUE);
+                movingCamera = true;
+            }
+            } break;
+        case SDL_MOUSEBUTTONUP: {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+                movingCamera = false;
+            }
+            } break;
         default:
             break;
         }
@@ -102,7 +126,6 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
     f.read(buffer, length);
     f.close();
 
-    //char *start = buffer;
     glShaderSource(shader, 1, &buffer, &length);
     glCompileShader(shader);
 
@@ -115,17 +138,48 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
         throw std::runtime_error("Shader compilation failed");
     }
 
-	delete[] buffer;
+    delete[] buffer;
     return shader;
 }
 
 void puma::Puma::update() {
+    Uint32 newTicks = SDL_GetTicks();
+    dt = (newTicks - lastTicks) / 1000.f;
+    lastTicks = newTicks;
+
+    // camera update
+    viewMatrix = glm::mat4(1);
+    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotationDegrees.x), {1, 0, 0});
+    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotationDegrees.y), {0, 1, 0});
+    viewMatrix = glm::translate(viewMatrix, -cameraPosition);
+
+    glm::vec4 cameraFront = {0, 0, -1, 0};
+    glm::vec4 cameraUp    = {0, 1, 0, 0};
+    glm::vec4 cameraSide  = {1, 0, 0, 0};
+
+    cameraFront = cameraFront * viewMatrix;
+    cameraUp    = cameraUp    * viewMatrix;
+    cameraSide  = cameraSide  * viewMatrix;
+
+    const Uint8* keyboardState = SDL_GetKeyboardState(0);
+    if (keyboardState[SDL_SCANCODE_W])
+        cameraPosition += glm::vec3(cameraFront) * dt;
+    if (keyboardState[SDL_SCANCODE_S])
+        cameraPosition -= glm::vec3(cameraFront) * dt;
+    if (keyboardState[SDL_SCANCODE_D])
+        cameraPosition += glm::vec3(cameraSide) * dt;
+    if (keyboardState[SDL_SCANCODE_A])
+        cameraPosition -= glm::vec3(cameraSide) * dt;
+    if (keyboardState[SDL_SCANCODE_LSHIFT])
+        cameraPosition += glm::vec3(cameraUp) * dt;
+    if (keyboardState[SDL_SCANCODE_LCTRL])
+        cameraPosition -= glm::vec3(cameraUp) * dt;
+
+
     //TODO ik
     for (int i = 0; i < 6; i++) {
         robotMatrix[i] = glm::mat4(1);
     }
-
-    viewMatrix = glm::translate(glm::mat4(1), {0, 0, -5});
 }
 
 void puma::Puma::render() {
