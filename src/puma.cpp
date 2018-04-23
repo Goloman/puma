@@ -113,8 +113,7 @@ void puma::Puma::handleEvents() {
         case SDL_KEYDOWN: {
             if (event.key.keysym.sym == SDLK_ESCAPE)
                 running = false;
-        }
-        break;
+            } break;
         default:
             break;
         }
