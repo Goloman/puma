@@ -21,6 +21,7 @@ private:
 
     void handleEvents();
     void update();
+	void updateCamera();
     void render();
 
     GLuint createShaderFromFile(const char* filename, GLenum shaderType);
