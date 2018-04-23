@@ -110,6 +110,11 @@ void puma::Puma::handleEvents() {
                 movingCamera = false;
             }
             } break;
+        case SDL_KEYDOWN: {
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+                running = false;
+        }
+        break;
         default:
             break;
         }
