@@ -23,6 +23,7 @@ private:
     void update();
 	void updateCamera();
     void render();
+    void setWindowIcon();
 
     GLuint createShaderFromFile(const char* filename, GLenum shaderType);
 
