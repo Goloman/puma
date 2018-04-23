@@ -21,7 +21,9 @@ const int SHADER_UNIFORM_LOCATION_LIGHT_POSITION = 13;
 
 struct Mesh {
     GLuint vao;
+	GLuint vaoNormals;
     GLuint vertexBuffer;
+	GLuint normalsBuffer;
     GLuint indexBuffer;
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
