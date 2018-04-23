@@ -116,7 +116,7 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
     GLuint shader = glCreateShader(shaderType);
 
     std::ifstream f;
-    f.open(filename);
+	f.open(filename, std::ifstream::in | std::ifstream::binary);
 
     f.seekg(0, std::ios::end);
     int length = f.tellg();

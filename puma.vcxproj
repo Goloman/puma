@@ -27,6 +27,10 @@
     <ClInclude Include="src\mesh.hpp" />
     <ClInclude Include="src\puma.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\phongFS.glsl" />
+    <None Include="resources\phongVS.glsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B77AE2C7-534F-444B-88B9-2AC4C8E78C6E}</ProjectGuid>
