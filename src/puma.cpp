@@ -89,7 +89,7 @@ void puma::Puma::handleEvents() {
             } break;
         case SDL_MOUSEMOTION: {
             if (movingCamera) {
-                cameraRotationDegrees += glm::vec2(event.motion.yrel, event.motion.xrel);
+                cameraRotationDegrees += glm::vec2(event.motion.yrel, event.motion.xrel) * cameraRotationSpeed;
                 cameraRotationDegrees.x = glm::clamp(cameraRotationDegrees.x, -90.f, 90.f);
                 cameraRotationDegrees.y = fmod(cameraRotationDegrees.y, 360);
             }
@@ -163,17 +163,17 @@ void puma::Puma::update() {
 
     const Uint8* keyboardState = SDL_GetKeyboardState(0);
     if (keyboardState[SDL_SCANCODE_W])
-        cameraPosition += glm::vec3(cameraFront) * dt;
+        cameraPosition += glm::vec3(cameraFront) * dt * cameraMoveSpeed;
     if (keyboardState[SDL_SCANCODE_S])
-        cameraPosition -= glm::vec3(cameraFront) * dt;
+        cameraPosition -= glm::vec3(cameraFront) * dt * cameraMoveSpeed;
     if (keyboardState[SDL_SCANCODE_D])
-        cameraPosition += glm::vec3(cameraSide) * dt;
+        cameraPosition += glm::vec3(cameraSide) * dt * cameraMoveSpeed;
     if (keyboardState[SDL_SCANCODE_A])
-        cameraPosition -= glm::vec3(cameraSide) * dt;
+        cameraPosition -= glm::vec3(cameraSide) * dt * cameraMoveSpeed;
     if (keyboardState[SDL_SCANCODE_LSHIFT])
-        cameraPosition += glm::vec3(cameraUp) * dt;
+        cameraPosition += glm::vec3(cameraUp) * dt * cameraMoveSpeed;
     if (keyboardState[SDL_SCANCODE_LCTRL])
-        cameraPosition -= glm::vec3(cameraUp) * dt;
+        cameraPosition -= glm::vec3(cameraUp) * dt * cameraMoveSpeed;
 
 
     //TODO ik

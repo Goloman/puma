@@ -44,6 +44,8 @@ private:
     bool movingCamera;
     glm::vec3 cameraPosition;
     glm::vec2 cameraRotationDegrees;
+	const float cameraMoveSpeed = 2.f;
+	const float cameraRotationSpeed = 0.2f;
 };
 
 }
