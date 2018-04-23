@@ -73,6 +73,10 @@ void puma::Puma::loop() {
     running = true;
 
     while (running) {
+		Uint32 newTicks = SDL_GetTicks();
+		dt = (newTicks - lastTicks) / 1000.f;
+		lastTicks = newTicks;
+
         handleEvents();
         update();
         render();
@@ -143,9 +147,6 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
 }
 
 void puma::Puma::update() {
-    Uint32 newTicks = SDL_GetTicks();
-    dt = (newTicks - lastTicks) / 1000.f;
-    lastTicks = newTicks;
 
     // camera update
     viewMatrix = glm::mat4(1);
