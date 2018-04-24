@@ -217,7 +217,7 @@ void puma::Puma::update() {
     targetMatrix = plateMatrix;
     targetMatrix = glm::translate(targetMatrix, {glm::sin(targetPhase) * targetMoveRadius, 0, glm::cos(targetPhase) * targetMoveRadius});
     targetMatrix = glm::scale(targetMatrix, {.1f, .1f, .1f}); // Only for drawing the debug quad, safe to remove later
-    targetPosition = targetMatrix * glm::vec4(glm::sin(targetPhase) * targetMoveRadius, 0, glm::cos(targetPhase) * targetMoveRadius, 1.f);
+    targetPosition = targetMatrix * glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     //TODO ik
     for (int i = 0; i < 6; i++) {
