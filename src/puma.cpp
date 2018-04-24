@@ -62,11 +62,20 @@ void puma::Puma::init() {
     robotMesh[4] = Mesh::load("resources/mesh5.txt");
     robotMesh[5] = Mesh::load("resources/mesh6.txt");
 
+    quadMesh = Mesh::load("resources/quad.txt");
+
     projectiomMatrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 20.f);
 
     movingCamera = false;
     cameraPosition = {0, 0, 5};
     cameraRotationDegrees = {0, 0};
+
+    targetMoveRadius = .3f;
+    plateMatrix = glm::mat4(1);
+    plateMatrix = glm::translate(plateMatrix, {-1, 0, 0});
+    plateMatrix = glm::rotate(plateMatrix, -glm::pi<float>() / 3, {0, 0, 1});
+    targetPhase = 0.f;
+    targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
     setWindowIcon();
 }
@@ -203,6 +212,13 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
 void puma::Puma::update() {
 	updateCamera();
 
+    targetPhase += dt;
+    targetPhase = fmod(targetPhase, glm::pi<float>() * 2);
+    targetMatrix = plateMatrix;
+    targetMatrix = glm::translate(targetMatrix, {glm::sin(targetPhase) * targetMoveRadius, 0, glm::cos(targetPhase) * targetMoveRadius});
+    targetMatrix = glm::scale(targetMatrix, {.1f, .1f, .1f}); // Only for drawing the debug quad, safe to remove later
+    targetPosition = targetMatrix * glm::vec4(glm::sin(targetPhase) * targetMoveRadius, 0, glm::cos(targetPhase) * targetMoveRadius, 1.f);
+
     //TODO ik
     for (int i = 0; i < 6; i++) {
         robotMatrix[i] = glm::mat4(1);
@@ -244,6 +260,9 @@ void puma::Puma::render() {
 
     glUseProgram(phongProgram);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
@@ -257,6 +276,15 @@ void puma::Puma::render() {
         glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
     }
+
+        Mesh mesh = quadMesh;
+        glBindVertexArray(mesh.vao);
+        glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+        glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+        glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(targetMatrix));
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+        glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+        glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 
     SDL_GL_SwapWindow(window);
 }

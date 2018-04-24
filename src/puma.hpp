@@ -35,6 +35,7 @@ private:
 
     Mesh robotMesh[6];
     glm::mat4 robotMatrix[6];
+    Mesh quadMesh;
 
     GLuint phongProgram;
 
@@ -48,6 +49,14 @@ private:
     glm::vec2 cameraRotationDegrees;
 	const float cameraMoveSpeed = 2.f;
 	const float cameraRotationSpeed = 0.2f;
+
+    glm::mat4 plateMatrix;
+    float targetMoveRadius;
+    float targetPhase;
+    glm::mat4 targetMatrix;
+
+    glm::vec3 targetNormal;
+    glm::vec3 targetPosition;
 };
 
 }
