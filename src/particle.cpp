@@ -75,7 +75,11 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
 
         float a = (rand() % 255) / 256.f;
         float b = (rand() % 255) / 256.f * glm::pi<float>() * 2.f;
-        float c = (rand() % 255) / 256.f * glm::pi<float>() / 12.f;
+        float c = (rand() % 255) / 256.f;
+        c += (rand() % 255) / 256.f;
+        c += (rand() % 255) / 256.f;
+        c /= 3;
+        c *= glm::pi<float>() / 6.f;
 
         glm::mat4 offset(1);
         offset = glm::rotate(offset, b, {0, 1, 0});
@@ -88,7 +92,7 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
         normal = glm::normalize(normal);
 
         particles[index].position = position;
-        particles[index].velocity = normal * (startVelocity + a / 20.f);
+        particles[index].velocity = normal * (startVelocity + a / 10.f);
         particles[index].age = 0.f;
 
         float epsilon = timePerParticle * i;

@@ -286,6 +286,10 @@ void puma::Puma::updateCamera() {
 }
 
 void puma::Puma::render() {
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -318,8 +322,6 @@ void puma::Puma::render() {
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 
     glUseProgram(particleProgram);
-
-    // NOTE needed?
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
@@ -329,7 +331,13 @@ void puma::Puma::render() {
     glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
     glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
     glEnableVertexAttribArray(SHADER_LOCATION_AGE);
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 
     glDisableVertexAttribArray(SHADER_LOCATION_AGE);
     glDisableVertexAttribArray(SHADER_LOCATION_VELOCITY);

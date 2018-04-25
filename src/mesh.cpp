@@ -83,9 +83,6 @@ puma::Mesh puma::Mesh::load(const char* filename) {
 
 	glBufferData(GL_ARRAY_BUFFER, ret.normals.size() * sizeof(glm::vec3), &ret.normals[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(SHADER_LOCATION_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
-	GLboolean somethig = glIsEnabled(GL_DEPTH_TEST);
 
     return ret;
 }

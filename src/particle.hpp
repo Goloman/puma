@@ -13,7 +13,7 @@ struct Particle {
 };
 
 struct ParticleSystem {
-    static const size_t MAX_PARTICLES = 1024;
+    static const size_t MAX_PARTICLES = 1024 * 4;
     constexpr static const float MAX_AGE = 2.f;
 
     GLuint vao;
