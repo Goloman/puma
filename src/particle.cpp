@@ -74,15 +74,15 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
     for (size_t i = 0; i < newCount; i++) {
         size_t index = (i + first + count) % MAX_PARTICLES;
 
-        float a = (rand() % 255) / 256.f;
-        float b = (rand() % 255) / 256.f * glm::pi<float>() * 2.f;
-        float c = (rand() % 255) / 256.f;
-        c += (rand() % 255) / 256.f;
-        c += (rand() % 255) / 256.f;
+        float a = (rand() % 65535) / 65536.f;
+        float b = (rand() % 65535) / 65536.f * glm::pi<float>() * 2.f;
+        float c = (rand() % 65535) / 65536.f;
+        c += (rand() % 65535) / 65536.f;
+        c += (rand() % 65535) / 65536.f;
         c /= 3;
         c *= c;
         c = 1-c;
-        c *= glm::pi<float>() / 3.f;
+        c *= glm::pi<float>() / 2.5f;
 
         glm::mat4 offset(1);
         offset = glm::rotate(offset, b, {0, 1, 0});
