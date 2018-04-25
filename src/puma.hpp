@@ -42,6 +42,7 @@ private:
     GLuint particleProgram;
 
     bool running;
+    bool simulating;
 
     Uint32 lastTicks;
     float dt;

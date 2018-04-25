@@ -2,6 +2,8 @@
 
 #include "constants.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -71,14 +73,20 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
     for (size_t i = 0; i < newCount; i++) {
         size_t index = (i + first + count) % MAX_PARTICLES;
 
+        float a = (rand() % 255) / 256.f;
+        float b = (rand() % 255) / 256.f * glm::pi<float>() * 2.f;
+        float c = (rand() % 255) / 256.f * glm::pi<float>() / 12.f;
+
+        glm::mat4 offset(1);
+        offset = glm::rotate(offset, b, {0, 1, 0});
+        offset = glm::rotate(offset, c, {0, 0, 1});
+
         glm::vec4 normal   = {0, 1, 0, 0};
         glm::vec4 position = {0, 0, 0, 1};
-        normal = sourceMatrix * normal;
+        normal = sourceMatrix * offset * normal;
         position = sourceMatrix * position;
         normal = glm::normalize(normal);
 
-        float a = (rand() % 255) / 256.f;
-        //a = 0;
         particles[index].position = position;
         particles[index].velocity = normal * (startVelocity + a / 20.f);
         particles[index].age = 0.f;

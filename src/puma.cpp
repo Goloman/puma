@@ -148,6 +148,7 @@ void puma::Puma::setWindowIcon() {
 
 void puma::Puma::loop() {
     running = true;
+    simulating = true;
     lastTicks = SDL_GetTicks();
 
     while (running) {
@@ -189,9 +190,16 @@ void puma::Puma::handleEvents() {
             }
             } break;
         case SDL_KEYDOWN: {
-            if (event.key.keysym.sym == SDLK_ESCAPE)
-                running = false;
-            } break;
+            switch (event.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    running = false;
+                    break;
+                case SDLK_SPACE:
+                    simulating = !simulating;
+                    break;
+            }
+            }
+            break;
         default:
             break;
         }
@@ -230,6 +238,8 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
 
 void puma::Puma::update() {
 	updateCamera();
+
+	if (!simulating) return;
 
     targetPhase += dt;
     targetPhase = fmod(targetPhase, glm::pi<float>() * 2);
