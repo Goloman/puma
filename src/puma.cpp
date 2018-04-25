@@ -22,7 +22,9 @@ void puma::Puma::init() {
         throw std::runtime_error("SDL initialization failed");
     }
 
-    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+    //window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+    fullscreen = false;
+    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
     if (!window) {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("Window creation failed");
@@ -82,7 +84,9 @@ void puma::Puma::init() {
 
     quadMesh = Mesh::load("resources/quad.txt");
 
-    projectiomMatrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 20.f);
+    int winW, winH;
+    SDL_GL_GetDrawableSize(window, &winW, &winH);
+    projectiomMatrix = glm::perspective(glm::radians(45.f), winW /(float) winH, 0.1f, 20.f);
 
     movingCamera = false;
     cameraPosition = {0, 0, 5};
@@ -172,6 +176,12 @@ void puma::Puma::handleEvents() {
         case SDL_QUIT: {
             running = false;
             } break;
+        case SDL_WINDOWEVENT: {
+            if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                glViewport(0, 0, event.window.data1, event.window.data2);
+                projectiomMatrix = glm::perspective(glm::radians(45.f), event.window.data1 /(float) event.window.data2, 0.1f, 20.f);
+            }
+            } break;
         case SDL_MOUSEMOTION: {
             if (movingCamera) {
                 cameraRotationDegrees += glm::vec2(event.motion.yrel, event.motion.xrel) * cameraRotationSpeed;
@@ -202,6 +212,15 @@ void puma::Puma::handleEvents() {
 				case SDLK_TAB:
 					occludingParticles = !occludingParticles;
 					break;
+				case SDLK_f:
+				    if (fullscreen) {
+                        SDL_SetWindowFullscreen(window, 0);
+				    } else {
+                        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+				    }
+				    fullscreen = !fullscreen;
+
+				    break;
             }
             }
             break;

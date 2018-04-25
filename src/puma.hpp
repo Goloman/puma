@@ -43,6 +43,7 @@ private:
 
     bool running;
     bool simulating;
+    bool fullscreen;
 
     Uint32 lastTicks;
     float dt;
