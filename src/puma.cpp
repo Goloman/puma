@@ -1,5 +1,7 @@
 #include "puma.hpp"
 
+#include "constants.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -55,6 +57,21 @@ void puma::Puma::init() {
         throw std::runtime_error("Linking failed");
     }
 
+    particleProgram = glCreateProgram();
+    vs = createShaderFromFile("resources/particleVS.glsl", GL_VERTEX_SHADER);
+    glAttachShader(particleProgram, vs);
+    GLuint gs = createShaderFromFile("resources/particleGS.glsl", GL_GEOMETRY_SHADER);
+    glAttachShader(particleProgram, gs);
+    fs = createShaderFromFile("resources/particleFS.glsl", GL_FRAGMENT_SHADER);
+    glAttachShader(particleProgram, fs);
+    glLinkProgram(particleProgram);
+    glGetProgramiv(particleProgram, GL_LINK_STATUS, &success);
+    if(!success) {
+        glGetProgramInfoLog(particleProgram, 1024, NULL, log);
+        SDL_Log("%s", log);
+        throw std::runtime_error("Linking failed");
+    }
+
     robotMesh[0] = Mesh::load("resources/mesh1.txt");
     robotMesh[1] = Mesh::load("resources/mesh2.txt");
     robotMesh[2] = Mesh::load("resources/mesh3.txt");
@@ -76,6 +93,8 @@ void puma::Puma::init() {
     plateMatrix = glm::rotate(plateMatrix, -glm::pi<float>() / 3, {0, 0, 1});
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
+
+    particles.init();
 
     setWindowIcon();
 }
@@ -219,6 +238,8 @@ void puma::Puma::update() {
     targetMatrix = glm::scale(targetMatrix, {.1f, .1f, .1f}); // Only for drawing the debug quad, safe to remove later
     targetPosition = targetMatrix * glm::vec4(0.f, 0.f, 0.f, 1.f);
 
+    particles.update(dt, targetMatrix);
+
     //TODO ik
     for (int i = 0; i < 6; i++) {
         robotMatrix[i] = glm::mat4(1);
@@ -285,6 +306,24 @@ void puma::Puma::render() {
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
         glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+
+    glUseProgram(particleProgram);
+
+    // NOTE needed?
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+
+    glBindVertexArray(particles.vao);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, &particles.particles[0], GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+    glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
+    glEnableVertexAttribArray(SHADER_LOCATION_AGE);
+    glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
+
+    glDisableVertexAttribArray(SHADER_LOCATION_AGE);
+    glDisableVertexAttribArray(SHADER_LOCATION_VELOCITY);
+    glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 
     SDL_GL_SwapWindow(window);
 }

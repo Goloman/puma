@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mesh.hpp"
+#include "particle.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -38,6 +39,7 @@ private:
     Mesh quadMesh;
 
     GLuint phongProgram;
+    GLuint particleProgram;
 
     bool running;
 
@@ -57,6 +59,8 @@ private:
 
     glm::vec3 targetNormal;
     glm::vec3 targetPosition;
+
+    ParticleSystem particles;
 };
 
 }

@@ -1,5 +1,7 @@
 #include "mesh.hpp"
 
+#include "constants.hpp"
+
 #include <fstream>
 #include <iterator>
 #include <sstream>
