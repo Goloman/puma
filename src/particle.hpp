@@ -18,7 +18,7 @@ struct ParticleSystem {
 
     GLuint vao;
 
-    Particle particles[MAX_PARTICLES];
+    Particle *particles;
     size_t first;
     size_t count;
 
