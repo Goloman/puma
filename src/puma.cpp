@@ -352,6 +352,7 @@ void puma::Puma::render() {
 			return (distances[a] > distances[b]);
 		});
 
+		delete[] distances;
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
 	}
 
