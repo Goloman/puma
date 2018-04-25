@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mesh.cpp" />
+    <ClCompile Include="src\particle.cpp" />
     <ClCompile Include="src\puma.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\mesh.hpp" />
+    <ClInclude Include="src\particle.hpp" />
     <ClInclude Include="src\puma.hpp" />
   </ItemGroup>
   <ItemGroup>
