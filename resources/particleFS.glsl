@@ -24,5 +24,20 @@ void main() {
     g *= 0.5;
     b *= 0.1;
 
-    outColor = vec4(r, g, b, 0.1f);
+	float diminishing = 0.1f;
+
+	r *= diminishing;
+	g *= diminishing;
+	b *= diminishing;
+
+	float alpha = 0.1;
+
+	float a = 0;
+	a -= cos(v * 2.0 * 3.1415);
+	a *= alpha;
+	a -= alpha;
+	a /= 2;
+	a += alpha * u;
+
+    outColor = vec4(r, g, b, a);
 }

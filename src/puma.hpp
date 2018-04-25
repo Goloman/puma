@@ -62,6 +62,7 @@ private:
     glm::vec3 targetPosition;
 
     ParticleSystem particles;
+	bool occludingParticles;
 };
 
 }

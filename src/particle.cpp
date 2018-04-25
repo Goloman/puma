@@ -30,6 +30,9 @@ void puma::ParticleSystem::init() {
     glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)offsetof(Particle, position));
     glVertexAttribPointer(SHADER_LOCATION_VELOCITY, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)offsetof(Particle, velocity));
     glVertexAttribPointer(SHADER_LOCATION_AGE, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)offsetof(Particle, age));
+
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
 }
 
 static inline size_t updateParticle(puma::Particle *p, float dt, glm::vec3 force, float maxAge) {

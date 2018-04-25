@@ -49,5 +49,14 @@
     <None Include="resources\phongVS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="resources\particleFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\particleGS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\particleVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

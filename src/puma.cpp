@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
 #include <fstream>
+#include <algorithm> 
 
 void puma::Puma::run() {
     init();
@@ -94,7 +95,8 @@ void puma::Puma::init() {
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
-    particles.init();
+	particles.init();
+	occludingParticles = false;
 
     setWindowIcon();
 }
@@ -197,6 +199,9 @@ void puma::Puma::handleEvents() {
                 case SDLK_SPACE:
                     simulating = !simulating;
                     break;
+				case SDLK_TAB:
+					occludingParticles = !occludingParticles;
+					break;
             }
             }
             break;
@@ -290,7 +295,7 @@ void puma::Puma::render() {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.3, 0.3, 0.3, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(phongProgram);
@@ -332,10 +337,37 @@ void puma::Puma::render() {
     glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
     glEnableVertexAttribArray(SHADER_LOCATION_AGE);
 
+	if (occludingParticles) {
+		std::vector<unsigned int> indices;
+		indices.reserve(ParticleSystem::MAX_PARTICLES);
+		float *distances = new float[ParticleSystem::MAX_PARTICLES];
+
+		for (unsigned int i = 0; i < ParticleSystem::MAX_PARTICLES; ++i) {
+			glm::vec3 offset = particles.particles[i].position - cameraPosition;
+			distances[i] = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+			indices.push_back(i);
+		}
+
+		std::sort(indices.begin(), indices.end(), [distances](unsigned int a, unsigned int b) {
+			return (distances[a] > distances[b]);
+		});
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+	}
+
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
+    
+
+	if (occludingParticles) {
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		glDrawElements(GL_POINTS, ParticleSystem::MAX_PARTICLES, GL_UNSIGNED_INT, 0);
+	} else {
+		glBlendFunc(GL_ONE, GL_ONE);
+		glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
+	}
+
+
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 
