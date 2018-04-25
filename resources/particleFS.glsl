@@ -28,4 +28,5 @@ void main() {
 
     outColor = vec4(r, g, b, 0.1f);
     //outColor = vec4(r, g, b, 1);
+    //outColor = vec4(1, g, b, 1);
 }

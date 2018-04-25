@@ -4,7 +4,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <cstdio>
 #include <cstdlib>
 
 void puma::ParticleSystem::init() {
@@ -63,6 +62,7 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
     count -= oldCount;
 
     float timePerParticle = MAX_AGE / MAX_PARTICLES;
+    float lastRemainder = remainder;
     remainder += dt;
     size_t newCount = remainder / timePerParticle;
     remainder = glm::mod(remainder, timePerParticle);
@@ -79,7 +79,9 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
         c += (rand() % 255) / 256.f;
         c += (rand() % 255) / 256.f;
         c /= 3;
-        c *= glm::pi<float>() / 6.f;
+        c *= c;
+        c = 1-c;
+        c *= glm::pi<float>() / 3.f;
 
         glm::mat4 offset(1);
         offset = glm::rotate(offset, b, {0, 1, 0});
@@ -95,7 +97,7 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
         particles[index].velocity = normal * (startVelocity + a / 10.f);
         particles[index].age = 0.f;
 
-        float epsilon = timePerParticle * i;
+        float epsilon = timePerParticle * i + lastRemainder;
         updateParticle(&particles[index], epsilon, force, MAX_AGE);
     }
 
