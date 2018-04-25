@@ -74,11 +74,11 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
     for (size_t i = 0; i < newCount; i++) {
         size_t index = (i + first + count) % MAX_PARTICLES;
 
-        float a = (rand() % 65535) / 65536.f;
-        float b = (rand() % 65535) / 65536.f * glm::pi<float>() * 2.f;
-        float c = (rand() % 65535) / 65536.f;
-        c += (rand() % 65535) / 65536.f;
-        c += (rand() % 65535) / 65536.f;
+        float a = (rand() % 32767) / 32768.f;
+        float b = (rand() % 32767) / 32768.f * glm::pi<float>() * 2.f;
+        float c = (rand() % 32767) / 32768.f;
+        c += (rand() % 32767) / 32768.f;
+        c += (rand() % 32767) / 32768.f;
         c /= 3;
         c *= c;
         c = 1-c;
