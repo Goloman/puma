@@ -97,7 +97,7 @@ void puma::ParticleSystem::update(float dt, glm::mat4 sourceMatrix) {
         particles[index].velocity = normal * (startVelocity + a / 10.f);
         particles[index].age = 0.f;
 
-        float epsilon = timePerParticle * i + lastRemainder;
+        float epsilon = timePerParticle * (newCount - 1 - i) + lastRemainder;
         updateParticle(&particles[index], epsilon, force, MAX_AGE);
     }
 
