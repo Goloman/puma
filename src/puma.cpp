@@ -95,7 +95,7 @@ void puma::Puma::init() {
 
     targetMoveRadius = .3f;
     plateMatrix = glm::mat4(1);
-    plateMatrix = glm::translate(plateMatrix, {-1.4, 0.2, 0});
+    plateMatrix = glm::translate(plateMatrix, {-1.5, 0.3, 0});
     plateMatrix = glm::rotate(plateMatrix, -glm::pi<float>() / 3, {0, 0, 1});
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
