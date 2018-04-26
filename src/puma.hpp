@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mesh.hpp"
+#include "inverseKinematics.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
