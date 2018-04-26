@@ -8,8 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
 #include <fstream>
-#include <algorithm> 
 #define M_PI 3.1415926535897932384626433832795
+#include <algorithm> 
 
 void puma::Puma::run() {
     init();
@@ -102,10 +102,11 @@ void puma::Puma::init() {
 
 	particles.init();
 	occludingParticles = false;
-	for (int i = 0; i < 6; i++) {
-		robotMatrix[i] = glm::mat4(1);
-	}
+
     setWindowIcon();
+	for (int i = 0; i < 6; i++) {
+			robotMatrix[i] = glm::mat4(1);
+	}
 }
 
 void puma::Puma::setWindowIcon() {
@@ -278,14 +279,15 @@ void puma::Puma::update() {
     particles.update(dt, targetMatrix);
 
     //TODO ik
+	// First part 
 	robotMatrix[0] = glm::mat4(1);
 	float a1, a2, a3, a4, a5;
 	getInverseKinematics(targetPosition, targetNormal, a1, a2, a3, a4, a5);
 	glm::mat4 A1 = glm::rotate(glm::mat4(1), a1, glm::vec3{ 0.0f, 1.0f, 0.0f });
 	robotMatrix[1] = A1;
-	glm::mat4 A2 = A1 * glm::translate(glm::mat4(1), { 0.0f, 0.27f, 0.0f }) * glm::rotate(glm::mat4(1), (float)((a2)), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	glm::mat4 A2 =  A1 * glm::translate(glm::mat4(1), { 0.0f, 0.27f, 0.0f }) * glm::rotate(glm::mat4(1), (float)((a2)), glm::vec3{ 0.0f, 0.0f, 1.0f });
 	robotMatrix[2] = A2 * glm::translate(glm::mat4(1), { 0.0f, -0.27f, 0.0f });
-	glm::mat4 A3 = A2 * glm::translate(glm::mat4(1), { -0.91f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)(a3), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	glm::mat4 A3 = A2 * glm::translate(glm::mat4(1), { -0.91f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)( a3), glm::vec3{ 0.0f, 0.0f, 1.0f });
 	robotMatrix[3] = A3 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.0f });
 	glm::mat4 A4 = A3 * glm::translate(glm::mat4(1), { 0.0f, 0.0f, -0.26f }) * glm::rotate(glm::mat4(1), (float)(a4), glm::vec3{ 1.0f, 0.0f, 0.0f });
 	robotMatrix[4] = A4 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.26f });
@@ -323,11 +325,12 @@ void puma::Puma::updateCamera() {
 }
 
 void puma::Puma::render() {
+    glClearColor(0.0f/255.0f, 24.0f/255.0f, 72.0f/255.0f, 1);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
-    glClearColor(0.3, 0.3, 0.3, 1);
+    //glClearColor(0.3, 0.3, 0.3, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(phongProgram);
