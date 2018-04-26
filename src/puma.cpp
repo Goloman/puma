@@ -352,14 +352,16 @@ void puma::Puma::render() {
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
     }
 
-        Mesh mesh = quadMesh;
-        glBindVertexArray(mesh.vao);
-        glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-        glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-        glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(targetMatrix));
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-        glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-        glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+    /*
+    Mesh mesh = quadMesh;
+    glBindVertexArray(mesh.vao);
+    glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+    glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(targetMatrix));
+    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+    glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+    glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+    */
 
     glUseProgram(particleProgram);
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));

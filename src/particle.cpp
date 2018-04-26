@@ -12,6 +12,7 @@ void puma::ParticleSystem::init() {
 
     force = {0, -1, 0};
     startVelocity = 1.f;
+    remainder = 0.0f;
 
     particles = new Particle[MAX_PARTICLES];
     for (size_t i = 0; i < MAX_PARTICLES; ++i) {
