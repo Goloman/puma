@@ -78,6 +78,9 @@ void puma::Puma::init() {
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
     setWindowIcon();
+	for (int i = 0; i < 6; i++) {
+			robotMatrix[i] = glm::mat4(1);
+	}
 }
 
 void puma::Puma::setWindowIcon() {
@@ -220,9 +223,12 @@ void puma::Puma::update() {
     targetPosition = targetMatrix * glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     //TODO ik
-    for (int i = 0; i < 6; i++) {
-        robotMatrix[i] = glm::mat4(1);
-    }
+	// First part 
+	robotMatrix[0] = glm::mat4(1);
+	//float a1, a2, a3, a4, a5;
+	//getInverseKinematics(targetPosition, )
+	//robotMatrix[1] = glm::rotate(robotMatrix[1], dt, glm::vec3{ 0.0f, 1.0f, 0.0f});
+	//robotMatrix[5] = glm::translate(robotMatrix[5], { glm::sin(targetPhase) * targetMoveRadius, 0, glm::cos(targetPhase) * targetMoveRadius });
 }
 
 void puma::Puma::updateCamera() {
@@ -255,7 +261,7 @@ void puma::Puma::updateCamera() {
 }
 
 void puma::Puma::render() {
-    glClearColor(0, 0, 0, 1);
+    glClearColor(1.0f/255.0f, 120.0f/255.0f, 144.0f/255.0f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(phongProgram);

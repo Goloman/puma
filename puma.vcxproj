@@ -19,11 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inverseKinematics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mesh.cpp" />
     <ClCompile Include="src\puma.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inverseKinematics.h" />
     <ClInclude Include="src\mesh.hpp" />
     <ClInclude Include="src\puma.hpp" />
   </ItemGroup>

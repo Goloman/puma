@@ -27,12 +27,18 @@
     <ClCompile Include="src\puma.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inverseKinematics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\puma.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inverseKinematics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
