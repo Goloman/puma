@@ -2,6 +2,7 @@
 
 #include "mesh.hpp"
 #include "inverseKinematics.h"
+#include "particle.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -39,8 +40,11 @@ private:
     Mesh quadMesh;
 
     GLuint phongProgram;
+    GLuint particleProgram;
 
     bool running;
+    bool simulating;
+    bool fullscreen;
 
     Uint32 lastTicks;
     float dt;
@@ -58,6 +62,9 @@ private:
 
     glm::vec3 targetNormal;
     glm::vec3 targetPosition;
+
+    ParticleSystem particles;
+	bool occludingParticles;
 };
 
 }

@@ -1,11 +1,14 @@
 #include "puma.hpp"
 
+#include "constants.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
 #include <fstream>
+#include <algorithm> 
 #define M_PI 3.1415926535897932384626433832795
 
 void puma::Puma::run() {
@@ -20,7 +23,9 @@ void puma::Puma::init() {
         throw std::runtime_error("SDL initialization failed");
     }
 
-    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+    //window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+    fullscreen = false;
+    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
     if (!window) {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("Window creation failed");
@@ -56,6 +61,21 @@ void puma::Puma::init() {
         throw std::runtime_error("Linking failed");
     }
 
+    particleProgram = glCreateProgram();
+    vs = createShaderFromFile("resources/particleVS.glsl", GL_VERTEX_SHADER);
+    glAttachShader(particleProgram, vs);
+    GLuint gs = createShaderFromFile("resources/particleGS.glsl", GL_GEOMETRY_SHADER);
+    glAttachShader(particleProgram, gs);
+    fs = createShaderFromFile("resources/particleFS.glsl", GL_FRAGMENT_SHADER);
+    glAttachShader(particleProgram, fs);
+    glLinkProgram(particleProgram);
+    glGetProgramiv(particleProgram, GL_LINK_STATUS, &success);
+    if(!success) {
+        glGetProgramInfoLog(particleProgram, 1024, NULL, log);
+        SDL_Log("%s", log);
+        throw std::runtime_error("Linking failed");
+    }
+
     robotMesh[0] = Mesh::load("resources/mesh1.txt");
     robotMesh[1] = Mesh::load("resources/mesh2.txt");
     robotMesh[2] = Mesh::load("resources/mesh3.txt");
@@ -65,7 +85,9 @@ void puma::Puma::init() {
 
     quadMesh = Mesh::load("resources/quad.txt");
 
-    projectiomMatrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 20.f);
+    int winW, winH;
+    SDL_GL_GetDrawableSize(window, &winW, &winH);
+    projectiomMatrix = glm::perspective(glm::radians(45.f), winW /(float) winH, 0.1f, 20.f);
 
     movingCamera = false;
     cameraPosition = {0, 0, 5};
@@ -78,10 +100,12 @@ void puma::Puma::init() {
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
-    setWindowIcon();
+	particles.init();
+	occludingParticles = false;
 	for (int i = 0; i < 6; i++) {
-			robotMatrix[i] = glm::mat4(1);
+		robotMatrix[i] = glm::mat4(1);
 	}
+    setWindowIcon();
 }
 
 void puma::Puma::setWindowIcon() {
@@ -133,6 +157,7 @@ void puma::Puma::setWindowIcon() {
 
 void puma::Puma::loop() {
     running = true;
+    simulating = true;
     lastTicks = SDL_GetTicks();
 
     while (running) {
@@ -154,6 +179,12 @@ void puma::Puma::handleEvents() {
         case SDL_QUIT: {
             running = false;
             } break;
+        case SDL_WINDOWEVENT: {
+            if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                glViewport(0, 0, event.window.data1, event.window.data2);
+                projectiomMatrix = glm::perspective(glm::radians(45.f), event.window.data1 /(float) event.window.data2, 0.1f, 20.f);
+            }
+            } break;
         case SDL_MOUSEMOTION: {
             if (movingCamera) {
                 cameraRotationDegrees += glm::vec2(event.motion.yrel, event.motion.xrel) * cameraRotationSpeed;
@@ -174,9 +205,28 @@ void puma::Puma::handleEvents() {
             }
             } break;
         case SDL_KEYDOWN: {
-            if (event.key.keysym.sym == SDLK_ESCAPE)
-                running = false;
-            } break;
+            switch (event.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    running = false;
+                    break;
+                case SDLK_SPACE:
+                    simulating = !simulating;
+                    break;
+				case SDLK_TAB:
+					occludingParticles = !occludingParticles;
+					break;
+				case SDLK_f:
+				    if (fullscreen) {
+                        SDL_SetWindowFullscreen(window, 0);
+				    } else {
+                        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+				    }
+				    fullscreen = !fullscreen;
+
+				    break;
+            }
+            }
+            break;
         default:
             break;
         }
@@ -216,6 +266,8 @@ GLuint puma::Puma::createShaderFromFile(const char* filename, GLenum shaderType)
 void puma::Puma::update() {
 	updateCamera();
 
+	if (!simulating) return;
+
     targetPhase += dt;
     targetPhase = fmod(targetPhase, glm::pi<float>() * 2);
     targetMatrix = plateMatrix;
@@ -223,16 +275,17 @@ void puma::Puma::update() {
     targetMatrix = glm::scale(targetMatrix, {.1f, .1f, .1f}); // Only for drawing the debug quad, safe to remove later
     targetPosition = targetMatrix * glm::vec4(0.f, 0.f, 0.f, 1.f);
 
+    particles.update(dt, targetMatrix);
+
     //TODO ik
-	// First part 
 	robotMatrix[0] = glm::mat4(1);
 	float a1, a2, a3, a4, a5;
 	getInverseKinematics(targetPosition, targetNormal, a1, a2, a3, a4, a5);
 	glm::mat4 A1 = glm::rotate(glm::mat4(1), a1, glm::vec3{ 0.0f, 1.0f, 0.0f });
 	robotMatrix[1] = A1;
-	glm::mat4 A2 =  A1 * glm::translate(glm::mat4(1), { 0.0f, 0.27f, 0.0f }) * glm::rotate(glm::mat4(1), (float)((a2)), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	glm::mat4 A2 = A1 * glm::translate(glm::mat4(1), { 0.0f, 0.27f, 0.0f }) * glm::rotate(glm::mat4(1), (float)((a2)), glm::vec3{ 0.0f, 0.0f, 1.0f });
 	robotMatrix[2] = A2 * glm::translate(glm::mat4(1), { 0.0f, -0.27f, 0.0f });
-	glm::mat4 A3 = A2 * glm::translate(glm::mat4(1), { -0.91f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)( a3), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	glm::mat4 A3 = A2 * glm::translate(glm::mat4(1), { -0.91f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)(a3), glm::vec3{ 0.0f, 0.0f, 1.0f });
 	robotMatrix[3] = A3 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.0f });
 	glm::mat4 A4 = A3 * glm::translate(glm::mat4(1), { 0.0f, 0.0f, -0.26f }) * glm::rotate(glm::mat4(1), (float)(a4), glm::vec3{ 1.0f, 0.0f, 0.0f });
 	robotMatrix[4] = A4 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.26f });
@@ -270,7 +323,11 @@ void puma::Puma::updateCamera() {
 }
 
 void puma::Puma::render() {
-    glClearColor(1.0f/255.0f, 120.0f/255.0f, 144.0f/255.0f, 1);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+
+    glClearColor(0.3, 0.3, 0.3, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(phongProgram);
@@ -300,6 +357,56 @@ void puma::Puma::render() {
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
         glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+
+    glUseProgram(particleProgram);
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+
+    glBindVertexArray(particles.vao);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, &particles.particles[0], GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+    glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
+    glEnableVertexAttribArray(SHADER_LOCATION_AGE);
+
+	if (occludingParticles) {
+		std::vector<unsigned int> indices;
+		indices.reserve(ParticleSystem::MAX_PARTICLES);
+		float *distances = new float[ParticleSystem::MAX_PARTICLES];
+
+		for (unsigned int i = 0; i < ParticleSystem::MAX_PARTICLES; ++i) {
+			glm::vec3 offset = particles.particles[i].position - cameraPosition;
+			distances[i] = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+			indices.push_back(i);
+		}
+
+		std::sort(indices.begin(), indices.end(), [distances](unsigned int a, unsigned int b) {
+			return (distances[a] > distances[b]);
+		});
+
+		delete[] distances;
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+	}
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    
+
+	if (occludingParticles) {
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		glDrawElements(GL_POINTS, ParticleSystem::MAX_PARTICLES, GL_UNSIGNED_INT, 0);
+	} else {
+		glBlendFunc(GL_ONE, GL_ONE);
+		glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
+	}
+
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
+    glDisableVertexAttribArray(SHADER_LOCATION_AGE);
+    glDisableVertexAttribArray(SHADER_LOCATION_VELOCITY);
+    glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 
     SDL_GL_SwapWindow(window);
 }
