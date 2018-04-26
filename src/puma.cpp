@@ -95,7 +95,7 @@ void puma::Puma::init() {
 
     targetMoveRadius = .3f;
     plateMatrix = glm::mat4(1);
-    plateMatrix = glm::translate(plateMatrix, {-1, 0, 0});
+    plateMatrix = glm::translate(plateMatrix, {-1.4, 0.2, 0});
     plateMatrix = glm::rotate(plateMatrix, -glm::pi<float>() / 3, {0, 0, 1});
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
@@ -352,16 +352,14 @@ void puma::Puma::render() {
         glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
     }
 
-    /*
     Mesh mesh = quadMesh;
     glBindVertexArray(mesh.vao);
     glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
     glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(targetMatrix));
+    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
     glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
     glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
     glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
-    */
 
     glUseProgram(particleProgram);
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
