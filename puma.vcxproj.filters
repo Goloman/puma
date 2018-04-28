@@ -64,5 +64,11 @@
     <None Include="resources\particleVS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="resources\groundFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\groundVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

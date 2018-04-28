@@ -32,6 +32,8 @@
     <ClInclude Include="src\puma.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\groundFS.glsl" />
+    <None Include="resources\groundVS.glsl" />
     <None Include="resources\particleFS.glsl" />
     <None Include="resources\particleGS.glsl" />
     <None Include="resources\particleVS.glsl" />
