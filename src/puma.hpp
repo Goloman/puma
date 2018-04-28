@@ -38,7 +38,7 @@ private:
     Mesh robotMesh[6];
     glm::mat4 robotMatrix[6];
     Mesh quadMesh;
-	Mesh ground;
+	Mesh ground[6];
 
     GLuint phongProgram;
 	GLuint particleProgram;
@@ -58,7 +58,7 @@ private:
 	const float cameraRotationSpeed = 0.2f;
 
     glm::mat4 plateMatrix;
-	glm::mat4 groundMatrix;
+	glm::mat4 groundMatrix[6];
     float targetMoveRadius;
     float targetPhase;
     glm::mat4 targetMatrix;

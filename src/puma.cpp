@@ -100,7 +100,12 @@ void puma::Puma::init() {
 
     quadMesh = Mesh::load("resources/quad.txt");
 
-	ground = Mesh::load("resources/quad.txt");
+	ground[0] = Mesh::load("resources/quad.txt");
+	ground[1] = Mesh::load("resources/quad.txt");
+	ground[2] = Mesh::load("resources/quad.txt");
+	ground[3] = Mesh::load("resources/quad.txt");
+	ground[4] = Mesh::load("resources/quad.txt");
+	ground[5] = Mesh::load("resources/quad.txt");
 
     int winW, winH;
     SDL_GL_GetDrawableSize(window, &winW, &winH);
@@ -117,7 +122,13 @@ void puma::Puma::init() {
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
-	groundMatrix = glm::scale(glm::translate(glm::mat4(1), { 0, -1, 0 }), {10.0f, 10.0f, 10.0f});
+	groundMatrix[0] = glm::scale(glm::translate(glm::mat4(1), { 0, -1, 0 }), {10.0f, 10.0f, 10.0f});
+	groundMatrix[1] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(270.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }), { 0.0f, -5.0f, 4.0f }), { 10.0f, 10.0f, 10.0f });
+	groundMatrix[2] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(90.0f), glm::vec3{ 0.0f, 0.0f, 1.0f }), { 4.0f, -5.0f, 0 }), { 10.0f, 10.0f, 10.0f });
+	groundMatrix[3] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(270.0f), glm::vec3{ 0.0f, 0.0f, 1.0f }), { -4.0f, -5.0f, 0 }), { 10.0f, 10.0f, 10.0f });
+	groundMatrix[4] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }), { 0.0f, -5.0f, -4.0f }), { 10.0f, 10.0f, 10.0f });
+	groundMatrix[5] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }), { 0, 9.0f, 0 }), { 10.0f, 10.0f, 10.0f });
+
 
 	particles.init();
 	occludingParticles = false;
@@ -386,16 +397,16 @@ void puma::Puma::render() {
     glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
     glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 
-	mesh = ground;
-	glBindVertexArray(mesh.vao);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(groundMatrix));
-	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-	glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
-
-
+	for (int i = 0; i < 6; i++) {
+		mesh = ground[i];
+		glBindVertexArray(mesh.vao);
+		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(groundMatrix[i]));
+		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	}
 
     glUseProgram(particleProgram);
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));

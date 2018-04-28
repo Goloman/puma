@@ -13,8 +13,8 @@ vec3 lightPos2;
 void main() {
 	lightColor = vec3(186.0f/255.0f,85.0f/255.0f,211.0f/255.0f);
 	objectColor = vec3(1.0f, 1.0f, 1.0f);
-	lightPos = vec3(-5.0f, 10.0f, 10.0f);
-	lightPos2 = vec3(-5.0f, 10.0f, 10.0f);
+	lightPos = vec3(-4.0f, 4.0f, 4.0f);
+	lightPos2 = vec3(-4.0f, 4.0f, 4.0f);
 
 	float specularStrength = 0.7f;
 
