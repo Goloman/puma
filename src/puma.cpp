@@ -465,8 +465,8 @@ void puma::Puma::render() {
 		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
-    SDL_GL_SwapWindow(window);
-    return;
+    //SDL_GL_SwapWindow(window);
+    //return;
 
 	mesh = cylinder;
 	glBindVertexArray(mesh.vao);
