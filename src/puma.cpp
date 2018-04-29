@@ -408,17 +408,30 @@ void puma::Puma::render() {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
+    glm::mat4 a1 = glm::inverse(viewMatrix);
+    glm::mat4 a2 = glm::inverse(plateMatrix);
+    glm::mat4 a3 = glm::scale(glm::mat4(1), {1, -1, 1});
+    glm::mat4 a4 = plateMatrix * a3 * a2 * a1;
+    //glm::mat4 a4 = a1 * a2 * a3 * plateMatrix;
+    glm::mat4 test = glm::inverse(a4);
+    test = glm::scale(test, {1, 1, 1});
 
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(test));
+    glDepthFunc(GL_GREATER);
+
+	glCullFace(GL_FRONT);
 	for (int i = 0; i < 6; i++) {
 		mesh = robotMesh[i];
 		glBindVertexArray(mesh.vao);
 		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
 		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrixPrim[i]));
+		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrix[i]));
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
+
+    glDepthFunc(GL_LESS);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
@@ -452,6 +465,8 @@ void puma::Puma::render() {
 		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
+    SDL_GL_SwapWindow(window);
+    return;
 
 	mesh = cylinder;
 	glBindVertexArray(mesh.vao);
