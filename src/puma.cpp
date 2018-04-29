@@ -99,6 +99,7 @@ void puma::Puma::init() {
     robotMesh[5] = Mesh::load("resources/mesh6.txt");
 
     quadMesh = Mesh::load("resources/quad.txt");
+	cylinder = Mesh::load("resources/cylinder.txt");
 
 	ground[0] = Mesh::load("resources/quad.txt");
 	ground[1] = Mesh::load("resources/quad.txt");
@@ -129,6 +130,7 @@ void puma::Puma::init() {
 	groundMatrix[4] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }), { 0.0f, -5.0f, -4.0f }), { 10.0f, 10.0f, 10.0f });
 	groundMatrix[5] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }), { 0, 9.0f, 0 }), { 10.0f, 10.0f, 10.0f });
 
+	cylinderMatrix = glm::translate(glm::mat4(1), { 1.0f, -1.0f, -1.0f });
 
 	particles.init();
 	occludingParticles = false;
@@ -407,6 +409,15 @@ void puma::Puma::render() {
 		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
 		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
+
+	mesh = cylinder;
+	glBindVertexArray(mesh.vao);
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(cylinderMatrix));
+	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+	glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 
     glUseProgram(particleProgram);
     glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
