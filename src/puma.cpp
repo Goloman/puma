@@ -139,7 +139,11 @@ void puma::Puma::init() {
 	for (int i = 0; i < 6; i++) {
 			robotMatrix[i] = glm::mat4(1);
 	}
+	for (int i = 0; i < 6; i++) {
+		robotMatrixPrim[i] = glm::mat4(1);
+	}
 }
+
 
 void puma::Puma::setWindowIcon() {
     int req_format = STBI_rgb_alpha;
@@ -325,6 +329,18 @@ void puma::Puma::update() {
 	robotMatrix[4] = A4 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.26f });
 	glm::mat4 A5 = A4 * glm::translate(glm::mat4(1), { -0.81f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)(a5), glm::vec3{ 0.0f, 0.0f, 1.0f });
 	robotMatrix[5] = A5 * glm::translate(glm::mat4(1), { 1.72f, -0.27f, 0.26f });
+
+	getInverseKinematics(targetPosition, targetNormal, a1, a2, a3, a4, a5);
+	robotMatrixPrim[0] = glm::scale(glm::translate(glm::mat4(1), { -3.0f, 0.0f, 0.0f }), glm::vec3(-1, 1, 1));
+	robotMatrixPrim[1] = robotMatrixPrim[0] * A1;
+	A2 =  A1 * glm::translate(glm::mat4(1), { 0.0f, 0.27f, 0.0f }) * glm::rotate(glm::mat4(1), (float)((a2)), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	robotMatrixPrim[2] = robotMatrixPrim[0] * A2 * glm::translate(glm::mat4(1), { 0.0f, -0.27f, 0.0f });
+	A3 = A2 * glm::translate(glm::mat4(1), { -0.91f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)(a3), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	robotMatrixPrim[3] = robotMatrixPrim[0] * A3 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.0f });
+	A4 = A3 * glm::translate(glm::mat4(1), { 0.0f, 0.0f, -0.26f }) * glm::rotate(glm::mat4(1), (float)(a4), glm::vec3{ 1.0f, 0.0f, 0.0f });
+	robotMatrixPrim[4] = robotMatrixPrim[0] * A4 * glm::translate(glm::mat4(1), { 0.91f, -0.27f, 0.26f });
+	A5 = A4 * glm::translate(glm::mat4(1), { -0.81f, 0.0f, 0.0f }) * glm::rotate(glm::mat4(1), (float)(a5), glm::vec3{ 0.0f, 0.0f, 1.0f });
+	robotMatrixPrim[5] = robotMatrixPrim[0] * A5 * glm::translate(glm::mat4(1), { 1.72f, -0.27f, 0.26f });
 }
 
 void puma::Puma::updateCamera() {
@@ -365,25 +381,6 @@ void puma::Puma::render() {
     //glClearColor(0.3, 0.3, 0.3, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(phongProgram);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
-
-    for (int i = 0; i < 6; i++) {
-        Mesh mesh = robotMesh[i];
-        glBindVertexArray(mesh.vao);
-        glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-        glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-        glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrix[i]));
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-        glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-        glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
-    }
-
 	glUseProgram(groundElementsProgram);
 	glCullFace(GL_BACK);
 
@@ -391,13 +388,59 @@ void puma::Puma::render() {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
     Mesh mesh = quadMesh;
-    glBindVertexArray(mesh.vao);
-    glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-    glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
-    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-    glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-    glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+
+	glBindVertexArray(mesh.vao);
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
+	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF); // Set any stencil to 1
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilMask(0xFF); // Write to stencil buffer
+	glDepthMask(GL_FALSE); // Don't write to depth buffer
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	glBindVertexArray(mesh.vao);
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
+	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+
+	for (int i = 0; i < 6; i++) {
+		mesh = robotMesh[i];
+		glBindVertexArray(mesh.vao);
+		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrixPrim[i]));
+		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	}
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_STENCIL_TEST);
+	glUseProgram(phongProgram);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+
+	for (int i = 0; i < 6; i++) {
+		Mesh mesh = robotMesh[i];
+		glBindVertexArray(mesh.vao);
+		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
+		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrix[i]));
+		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
+		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+	}
 
 	for (int i = 0; i < 6; i++) {
 		mesh = ground[i];

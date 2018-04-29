@@ -37,6 +37,7 @@ private:
 
     Mesh robotMesh[6];
     glm::mat4 robotMatrix[6];
+	glm::mat4 robotMatrixPrim[6];
     Mesh quadMesh;
 	Mesh cylinder;
 	Mesh ground[6];
