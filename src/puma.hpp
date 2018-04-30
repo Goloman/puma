@@ -25,6 +25,8 @@ private:
     void update();
 	void updateCamera();
     void render();
+	void renderObjects(glm::mat4 view);
+	void renderParticles(glm::mat4 view);
     void setWindowIcon();
 
     GLuint createShaderFromFile(const char* filename, GLenum shaderType);

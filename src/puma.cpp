@@ -25,22 +25,45 @@ void puma::Puma::init() {
 
     //window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
     fullscreen = false;
-    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!window) {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("Window creation failed");
     }
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0); // TODO https://wiki.libsdl.org/SDL_GLattr
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	int rc = SDL_GetNumRenderDrivers();
+	SDL_RendererInfo info;
+	int i;
+	bool found = false;
+	for (i = 0; i < rc; i++) {
+		SDL_GetRenderDriverInfo(i, &info);
+		if (!strcmp(info.name, "opengl")) {
+			found = true;
+			break;
+		}
+	}
+
+	assert(found);
+	auto renderer = SDL_CreateRenderer(window, i, SDL_RENDERER_ACCELERATED);
 
     context = SDL_GL_CreateContext(window);
     if (!context) {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("Context creation failed");
     }
+
+
+	int r;
+	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r);
+	assert(r == 8);
+
 
     // NOTE potentially needed?
     //glewExperimental = GL_TRUE;
@@ -374,119 +397,116 @@ void puma::Puma::updateCamera() {
 
 void puma::Puma::render() {
     glClearColor(0.0f/255.0f, 24.0f/255.0f, 72.0f/255.0f, 1);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
 
-    //glClearColor(0.3, 0.3, 0.3, 1);
+
+    glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(groundElementsProgram);
-	glCullFace(GL_BACK);
+	glUseProgram(phongProgram);
+
+
+	Mesh mesh = quadMesh;
 
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
-    Mesh mesh = quadMesh;
-
-	glBindVertexArray(mesh.vao);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
-	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-
+	
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // Set any stencil to 1
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xFF); // Write to stencil buffer
 	glDepthMask(GL_FALSE); // Don't write to depth buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // dont't write to color buffer
 	glClear(GL_STENCIL_BUFFER_BIT);
 
 	glBindVertexArray(mesh.vao);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
-    glm::mat4 a1 = glm::inverse(viewMatrix);
-    glm::mat4 a2 = glm::inverse(plateMatrix);
-    glm::mat4 a3 = glm::scale(glm::mat4(1), {1, -1, 1});
-    glm::mat4 a4 = plateMatrix * a3 * a2 * a1;
-    //glm::mat4 a4 = a1 * a2 * a3 * plateMatrix;
-    glm::mat4 test = glm::inverse(a4);
-    test = glm::scale(test, {1, 1, 1});
 
-	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(test));
-    glDepthFunc(GL_GREATER);
+	glm::mat4 a1 = glm::inverse(viewMatrix);
+	glm::mat4 a2 = glm::inverse(plateMatrix);
+	glm::mat4 a3 = glm::scale(glm::mat4(1), { 1, -1, 1 });
+	glm::mat4 a4 = plateMatrix * a3 * a2 * a1;
+	glm::mat4 test = glm::inverse(a4);
 
+	glDepthMask(GL_TRUE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glCullFace(GL_FRONT);
-	for (int i = 0; i < 6; i++) {
-		mesh = robotMesh[i];
-		glBindVertexArray(mesh.vao);
-		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
-		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrix[i]));
-		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
-	}
+	glDepthFunc(GL_LESS);
 
-    glDepthFunc(GL_LESS);
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilMask(0x00);
+
+	renderObjects(test);
+	glCullFace(GL_BACK);
+	renderParticles(test);
+	//renderObjects(viewMatrix);
+
+
+	glUseProgram(phongProgram);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_TRUE);
+	glBindVertexArray(mesh.vao);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
+	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
 	glUseProgram(phongProgram);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	renderObjects(viewMatrix);
+	renderParticles(viewMatrix);
 
-	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	SDL_GL_SwapWindow(window);
+}
+
+void puma::Puma::renderObjects(glm::mat4 view)
+{
+	glUseProgram(phongProgram);
+	Mesh mesh;
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
 	for (int i = 0; i < 6; i++) {
 		Mesh mesh = robotMesh[i];
 		glBindVertexArray(mesh.vao);
-		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
 		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(robotMatrix[i]));
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
 
 	for (int i = 0; i < 6; i++) {
 		mesh = ground[i];
 		glBindVertexArray(mesh.vao);
-		glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
 		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(groundMatrix[i]));
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-		glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-		glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	}
-    //SDL_GL_SwapWindow(window);
-    //return;
 
 	mesh = cylinder;
 	glBindVertexArray(mesh.vao);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(cylinderMatrix));
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-	glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-	glDisableVertexAttribArray(SHADER_LOCATION_NORMAL);
+}
 
-    glUseProgram(particleProgram);
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-    glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+void puma::Puma::renderParticles(glm::mat4 view) {
+	glUseProgram(particleProgram);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
-    glBindVertexArray(particles.vao);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, &particles.particles[0], GL_DYNAMIC_DRAW);
+	glBindVertexArray(particles.vao);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, &particles.particles[0], GL_DYNAMIC_DRAW);
 
-    glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-    glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
-    glEnableVertexAttribArray(SHADER_LOCATION_AGE);
 
 	if (occludingParticles) {
 		std::vector<unsigned int> indices;
@@ -507,27 +527,21 @@ void puma::Puma::render() {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
 	}
 
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+
 
 	if (occludingParticles) {
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glDrawElements(GL_POINTS, ParticleSystem::MAX_PARTICLES, GL_UNSIGNED_INT, 0);
-	} else {
+	}
+	else {
 		glBlendFunc(GL_ONE, GL_ONE);
 		glDrawArrays(GL_POINTS, 0, ParticleSystem::MAX_PARTICLES);
 	}
 
-
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-
-    glDisableVertexAttribArray(SHADER_LOCATION_AGE);
-    glDisableVertexAttribArray(SHADER_LOCATION_VELOCITY);
-    glDisableVertexAttribArray(SHADER_LOCATION_POSITION);
-
-    SDL_GL_SwapWindow(window);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 void puma::Puma::cleanup() {

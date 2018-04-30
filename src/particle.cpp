@@ -34,6 +34,11 @@ void puma::ParticleSystem::init() {
 
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+
+
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glEnableVertexAttribArray(SHADER_LOCATION_VELOCITY);
+	glEnableVertexAttribArray(SHADER_LOCATION_AGE);
 }
 
 static inline size_t updateParticle(puma::Particle *p, float dt, glm::vec3 force, float maxAge) {

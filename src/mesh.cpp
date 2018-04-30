@@ -84,5 +84,7 @@ puma::Mesh puma::Mesh::load(const char* filename) {
 	glBufferData(GL_ARRAY_BUFFER, ret.normals.size() * sizeof(glm::vec3), &ret.normals[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(SHADER_LOCATION_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	glEnableVertexAttribArray(SHADER_LOCATION_NORMAL);
     return ret;
 }
