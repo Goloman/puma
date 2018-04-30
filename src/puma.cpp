@@ -23,6 +23,13 @@ void puma::Puma::init() {
         throw std::runtime_error("SDL initialization failed");
     }
 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
     //window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
     fullscreen = false;
     window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -31,43 +38,16 @@ void puma::Puma::init() {
         throw std::runtime_error("Window creation failed");
     }
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	int rc = SDL_GetNumRenderDrivers();
-	SDL_RendererInfo info;
-	int i;
-	bool found = false;
-	for (i = 0; i < rc; i++) {
-		SDL_GetRenderDriverInfo(i, &info);
-		if (!strcmp(info.name, "opengl")) {
-			found = true;
-			break;
-		}
-	}
-
-	assert(found);
-	auto renderer = SDL_CreateRenderer(window, i, SDL_RENDERER_ACCELERATED);
-
     context = SDL_GL_CreateContext(window);
     if (!context) {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("Context creation failed");
     }
 
-
-	int r;
-	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r);
-	assert(r == 8);
-
-
     // NOTE potentially needed?
     //glewExperimental = GL_TRUE;
     GLenum glewRet = glewInit();
+
 
     phongProgram = glCreateProgram();
     GLuint vs = createShaderFromFile("resources/phongVS.glsl", GL_VERTEX_SHADER);
