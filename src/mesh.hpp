@@ -18,9 +18,13 @@ struct Mesh {
     std::vector<glm::vec3> normals;
     std::vector<unsigned int> indices;
     //TODO edge information
+	bool edgesPresent;
+	std::vector<glm::vec3> edgePositions;
+	std::vector<unsigned int> edgeTriangles;
+	std::vector<bool> triangleFrontFacing;
     //TODO optional texture coordinates
 
-    static Mesh load(const char* filename);
+    static Mesh load(const char* filename, bool edges = false);
 };
 
 }

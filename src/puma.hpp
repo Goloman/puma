@@ -71,6 +71,8 @@ private:
     glm::vec3 targetNormal;
     glm::vec3 targetPosition;
 
+	glm::vec3 lightPosition;
+
     ParticleSystem particles;
 	bool occludingParticles;
 };

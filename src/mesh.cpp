@@ -7,8 +7,10 @@
 #include <sstream>
 #include <string>
 
-puma::Mesh puma::Mesh::load(const char* filename) {
+puma::Mesh puma::Mesh::load(const char* filename, bool edges) {
     Mesh ret;
+
+	ret.edgesPresent = edges;
 
     std::ifstream file;
     file.open(filename);
@@ -61,6 +63,26 @@ puma::Mesh puma::Mesh::load(const char* filename) {
         ret.indices.push_back(stoi(tokens[1]));
         ret.indices.push_back(stoi(tokens[2]));
     }
+
+	if (ret.edgesPresent) {
+		getline(file, line);
+		count = stoi(line);
+		ret.edgePositions.reserve(count * 2);
+		ret.edgeTriangles.reserve(count * 2);
+		ret.triangleFrontFacing.resize(ret.indices.size() / 3);
+
+		for (int i = 0; i < count; i++)
+		{
+			getline(file, line);
+			std::istringstream iss(line);
+			std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss},
+				std::istream_iterator<std::string>{} };
+			ret.edgePositions.push_back(vertexPositions[stoi(tokens[0])]);
+			ret.edgePositions.push_back(vertexPositions[stoi(tokens[1])]);
+			ret.edgeTriangles.push_back(stoi(tokens[2]));
+			ret.edgeTriangles.push_back(stoi(tokens[3]));
+		}
+	}
 
     file.close();
 

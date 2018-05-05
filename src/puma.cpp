@@ -94,12 +94,12 @@ void puma::Puma::init() {
         throw std::runtime_error("Linking failed");
     }
 
-    robotMesh[0] = Mesh::load("resources/mesh1.txt");
-    robotMesh[1] = Mesh::load("resources/mesh2.txt");
-    robotMesh[2] = Mesh::load("resources/mesh3.txt");
-    robotMesh[3] = Mesh::load("resources/mesh4.txt");
-    robotMesh[4] = Mesh::load("resources/mesh5.txt");
-    robotMesh[5] = Mesh::load("resources/mesh6.txt");
+    robotMesh[0] = Mesh::load("resources/mesh1.txt", true);
+    robotMesh[1] = Mesh::load("resources/mesh2.txt", true);
+    robotMesh[2] = Mesh::load("resources/mesh3.txt", true);
+    robotMesh[3] = Mesh::load("resources/mesh4.txt", true);
+    robotMesh[4] = Mesh::load("resources/mesh5.txt", true);
+    robotMesh[5] = Mesh::load("resources/mesh6.txt", true);
 
     quadMesh = Mesh::load("resources/quad.txt");
 	cylinder = Mesh::load("resources/cylinder.txt");
@@ -145,6 +145,8 @@ void puma::Puma::init() {
 	for (int i = 0; i < 6; i++) {
 		robotMatrixPrim[i] = glm::mat4(1);
 	}
+
+	lightPosition = glm::vec3(-4.0f, 4.0f, 4.0f);
 }
 
 
@@ -376,6 +378,20 @@ void puma::Puma::updateCamera() {
 }
 
 void puma::Puma::render() {
+	// prepare data
+	{
+
+
+		for (unsigned int i = 0; i < robotMesh[0].triangleFrontFacing.size(); i++) {
+			auto a = robotMesh[0].positions[robotMesh[0].indices[3 * i + 0]];
+			auto b = robotMesh[0].positions[robotMesh[0].indices[3 * i + 1]];
+			auto c = robotMesh[0].positions[robotMesh[0].indices[3 * i + 2]];
+			robotMesh[0].triangleFrontFacing[i] = glm::dot(lightPosition - a, glm::cross(b - a, c - a)) > 0;
+		}
+
+	}
+
+	// render
     glClearColor(0.0f/255.0f, 24.0f/255.0f, 72.0f/255.0f, 1);
 
 
