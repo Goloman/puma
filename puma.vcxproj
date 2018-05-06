@@ -39,6 +39,8 @@
     <None Include="resources\particleVS.glsl" />
     <None Include="resources\phongFS.glsl" />
     <None Include="resources\phongVS.glsl" />
+    <None Include="resources\shadowFS.glsl" />
+    <None Include="resources\shadowVS.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

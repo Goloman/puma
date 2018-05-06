@@ -48,6 +48,16 @@ void puma::Puma::init() {
     //glewExperimental = GL_TRUE;
     GLenum glewRet = glewInit();
 
+	glGenVertexArrays(1, &shadowVolumeVao);
+	glBindVertexArray(shadowVolumeVao);
+	glGenBuffers(1, &shadowVolumeVb);
+	glBindBuffer(GL_ARRAY_BUFFER, shadowVolumeVb);
+	glGenBuffers(1, &shadowVolumeIb);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIb);
+	//glBufferData(GL_ARRAY_BUFFER, (shadowVolumeVertices.size()) * sizeof(glm::vec3), shadowVolumeVertices.data(), GL_DYNAMIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIndices.size() * sizeof(unsigned int), shadowVolumeIndices.data(), GL_DYNAMIC_DRAW);
+	//glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
 
     phongProgram = glCreateProgram();
     GLuint vs = createShaderFromFile("resources/phongVS.glsl", GL_VERTEX_SHADER);
@@ -70,11 +80,22 @@ void puma::Puma::init() {
 	fs = createShaderFromFile("resources/groundFS.glsl", GL_FRAGMENT_SHADER);
 	glAttachShader(groundElementsProgram, fs);
 	glLinkProgram(groundElementsProgram);
-	success;
-	log[1024];
 	glGetProgramiv(groundElementsProgram, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(groundElementsProgram, 1024, NULL, log);
+		SDL_Log("%s", log);
+		throw std::runtime_error("Linking failed");
+	}
+
+	shadowProgram = glCreateProgram();
+	vs = createShaderFromFile("resources/shadowVS.glsl", GL_VERTEX_SHADER);
+	glAttachShader(shadowProgram, vs);
+	fs = createShaderFromFile("resources/shadowFS.glsl", GL_FRAGMENT_SHADER);
+	glAttachShader(shadowProgram, fs);
+	glLinkProgram(shadowProgram);
+	glGetProgramiv(shadowProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(shadowProgram, 1024, NULL, log);
 		SDL_Log("%s", log);
 		throw std::runtime_error("Linking failed");
 	}
@@ -113,7 +134,7 @@ void puma::Puma::init() {
 
     int winW, winH;
     SDL_GL_GetDrawableSize(window, &winW, &winH);
-    projectiomMatrix = glm::perspective(glm::radians(45.f), winW /(float) winH, 0.1f, 20.f);
+    projectiomMatrix = glm::perspective(glm::radians(45.f), winW /(float) winH, 0.1f, 100.f);
 
     movingCamera = false;
     cameraPosition = {0, 0, 5};
@@ -148,21 +169,12 @@ void puma::Puma::init() {
 
 	lightPosition = glm::vec3(-4.0f, 4.0f, 4.0f);
 
-	GLuint svvb, svib;
 
-	/*
-	glGenVertexArrays(1, &shadowVolumeVao);
-	glBindVertexArray(shadowVolumeVao);
 
-	glGenBuffers(1, &svvb);
-	glBindBuffer(GL_ARRAY_BUFFER, svvb);
+	//auto b = shadowVolumeIndices.data();
 
-	glGenBuffers(1, &svib);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, svib);
-
-	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	*/
+	
+	
 }
 
 
@@ -240,7 +252,7 @@ void puma::Puma::handleEvents() {
         case SDL_WINDOWEVENT: {
             if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 glViewport(0, 0, event.window.data1, event.window.data2);
-                projectiomMatrix = glm::perspective(glm::radians(45.f), event.window.data1 /(float) event.window.data2, 0.1f, 20.f);
+                projectiomMatrix = glm::perspective(glm::radians(45.f), event.window.data1 /(float) event.window.data2, 0.1f, 100.f);
             }
             } break;
         case SDL_MOUSEMOTION: {
@@ -395,23 +407,93 @@ void puma::Puma::updateCamera() {
 
 void puma::Puma::render() {
 	// prepare data
-	{
+	shadowVolumeVertices.clear();
+		shadowVolumeIndices.clear();
+
+		float smallOffset = 0.0001f;
+		float bigOffset = 7.f;
+
+		for (unsigned int q = 0; q < 6; q++) {
+
+			for (unsigned int i = 0; i < robotMesh[q].triangleFrontFacing.size(); i++) {
+				auto a = robotMesh[q].positions[robotMesh[q].indices[3 * i + 0]];
+				auto b = robotMesh[q].positions[robotMesh[q].indices[3 * i + 1]];
+				auto c = robotMesh[q].positions[robotMesh[q].indices[3 * i + 2]];
+				a = glm::vec3(robotMatrix[q] * glm::vec4(a, 1.f));
+				b = glm::vec3(robotMatrix[q] * glm::vec4(b, 1.f));
+				c = glm::vec3(robotMatrix[q] * glm::vec4(c, 1.f));
+				auto flag = glm::dot(lightPosition - a, glm::cross(b - a, c - a)) > 0;
+				robotMesh[q].triangleFrontFacing[i] = flag;
+
+				if (!flag) continue;
+
+				auto offset = shadowVolumeVertices.size();
+
+				auto aOff = glm::normalize(a - lightPosition);
+				auto bOff = glm::normalize(b - lightPosition);
+				auto cOff = glm::normalize(c - lightPosition);
+
+				shadowVolumeVertices.push_back(a + aOff * smallOffset);
+				shadowVolumeVertices.push_back(b + bOff * smallOffset);
+				shadowVolumeVertices.push_back(c + cOff * smallOffset);
+				shadowVolumeIndices.push_back(offset + 0);
+				shadowVolumeIndices.push_back(offset + 1);
+				shadowVolumeIndices.push_back(offset + 2);
+
+				shadowVolumeVertices.push_back(a + aOff * bigOffset);
+				shadowVolumeVertices.push_back(b + bOff * bigOffset);
+				shadowVolumeVertices.push_back(c + cOff * bigOffset);
+				shadowVolumeIndices.push_back(offset + 5);
+				shadowVolumeIndices.push_back(offset + 4);
+				shadowVolumeIndices.push_back(offset + 3);
+			}
 
 
-		for (unsigned int i = 0; i < robotMesh[0].triangleFrontFacing.size(); i++) {
-			auto a = robotMesh[0].positions[robotMesh[0].indices[3 * i + 0]];
-			auto b = robotMesh[0].positions[robotMesh[0].indices[3 * i + 1]];
-			auto c = robotMesh[0].positions[robotMesh[0].indices[3 * i + 2]];
-			robotMesh[0].triangleFrontFacing[i] = glm::dot(lightPosition - a, glm::cross(b - a, c - a)) > 0;
-		}
 
-		for (int i = 0; i < robotMesh[0].edgeTriangles.size(); i += 2);
 
-		/*
-		glBindVertexArray(shadowVolumeVao);
-		glBufferData(GL_ARRAY_BUFFER, (shadowVolumeVertices.size()) * sizeof(glm::vec3), shadowVolumeVertices.data(), GL_DYNAMIC_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIndices.size() * sizeof(unsigned int), shadowVolumeIndices.data(), GL_DYNAMIC_DRAW);
-		*/
+			for (int i = 0; i < robotMesh[q].edgeTriangles.size(); i += 2) {
+				auto t1 = robotMesh[q].edgeTriangles[i];
+				auto t2 = robotMesh[q].edgeTriangles[i + 1];
+
+				if (robotMesh[q].triangleFrontFacing[t1] == robotMesh[q].triangleFrontFacing[t2]) continue;
+
+				auto start = shadowVolumeVertices.size();
+
+				auto pos1 = robotMesh[q].edgePositions[i];
+				auto pos2 = robotMesh[q].edgePositions[i + 1];
+
+				pos1 = glm::vec3(robotMatrix[q] * glm::vec4(pos1, 1.f));
+				pos2 = glm::vec3(robotMatrix[q] * glm::vec4(pos2, 1.f));
+
+				auto offset1 = glm::normalize(pos1 - lightPosition);
+				auto offset2 = glm::normalize(pos2 - lightPosition);
+
+				shadowVolumeVertices.push_back(pos1 + offset1 * smallOffset);
+				shadowVolumeVertices.push_back(pos2 + offset2 * smallOffset);
+				
+				shadowVolumeVertices.push_back(pos1 + offset1 * bigOffset);
+				shadowVolumeVertices.push_back(pos2 + offset2 * bigOffset);
+
+				if (robotMesh[q].triangleFrontFacing[t2]) {
+					shadowVolumeIndices.push_back(start + 0);
+					shadowVolumeIndices.push_back(start + 1);
+					shadowVolumeIndices.push_back(start + 2);
+					shadowVolumeIndices.push_back(start + 2);
+					shadowVolumeIndices.push_back(start + 1);
+					shadowVolumeIndices.push_back(start + 3);
+				}
+				else {
+					shadowVolumeIndices.push_back(start + 0);
+					shadowVolumeIndices.push_back(start + 2);
+					shadowVolumeIndices.push_back(start + 1);
+					shadowVolumeIndices.push_back(start + 1);
+					shadowVolumeIndices.push_back(start + 2);
+					shadowVolumeIndices.push_back(start + 3);
+				}
+			}
+
+		//glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+		//glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
 	}
 
 	// render
@@ -424,7 +506,7 @@ void puma::Puma::render() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-
+	glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(phongProgram);
@@ -439,7 +521,7 @@ void puma::Puma::render() {
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 0x80, 0x80); // Set any stencil to 1
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilMask(0x80); // Write to stencil buffer
+	glStencilMask(0xff); // Write to stencil buffer
 	glDepthMask(GL_FALSE); // Don't write to depth buffer
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // dont't write to color buffer
 	glClear(GL_STENCIL_BUFFER_BIT);
@@ -478,17 +560,65 @@ void puma::Puma::render() {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
-	glUseProgram(phongProgram);
+	
 
+	glUseProgram(phongProgram);
 	renderObjects(viewMatrix);
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+	glUseProgram(groundElementsProgram);
+	glBindVertexArray(shadowVolumeVao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIb);
+	glBindBuffer(GL_ARRAY_BUFFER, shadowVolumeVb);
+	glBufferData(GL_ARRAY_BUFFER, (shadowVolumeVertices.size()) * sizeof(glm::vec3), shadowVolumeVertices.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIndices.size() * sizeof(unsigned int), shadowVolumeIndices.data(), GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 0x01, 0xff);
+	glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+	glStencilMask(0xff); // Write to stencil buffer
+	glDepthMask(GL_FALSE); // Don't write to depth buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // dont't write to color buffer
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	glCullFace(GL_FRONT);
+	glDrawElements(GL_TRIANGLES, shadowVolumeIndices.size(), GL_UNSIGNED_INT, 0);
+	
+	glCullFace(GL_BACK);
+	glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+	glDrawElements(GL_TRIANGLES, shadowVolumeIndices.size(), GL_UNSIGNED_INT, 0);
+	
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	glStencilFunc(GL_EQUAL, 0x00, 0xff); // Set any stencil to 1
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilMask(0x00); // Write to stencil buffer
+	glDepthFunc(GL_EQUAL);
+	glUseProgram(phongProgram);
+	renderObjects(viewMatrix);
+
+	glDepthFunc(GL_LESS);
+	glDisable(GL_STENCIL_TEST);
 	renderParticles(viewMatrix);
 
+
+
+
 	SDL_GL_SwapWindow(window);
+	return;
 }
 
 void puma::Puma::renderObjects(glm::mat4 view)
@@ -525,7 +655,10 @@ void puma::Puma::renderParticles(glm::mat4 view) {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
 	glBindVertexArray(particles.vao);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, particles.particles, GL_STREAM_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, particles.ib);
+	glBindBuffer(GL_ARRAY_BUFFER, particles.vb);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, particles.particles, GL_DYNAMIC_DRAW);
 
 
 	if (occludingParticles) {

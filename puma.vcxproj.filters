@@ -70,5 +70,11 @@
     <None Include="resources\groundVS.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="resources\shadowFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\shadowVS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
