@@ -104,12 +104,12 @@ void puma::Puma::init() {
     quadMesh = Mesh::load("resources/quad.txt");
 	cylinder = Mesh::load("resources/cylinder.txt");
 
-	ground[0] = Mesh::load("resources/quad.txt");
-	ground[1] = Mesh::load("resources/quad.txt");
-	ground[2] = Mesh::load("resources/quad.txt");
-	ground[3] = Mesh::load("resources/quad.txt");
-	ground[4] = Mesh::load("resources/quad.txt");
-	ground[5] = Mesh::load("resources/quad.txt");
+	//ground[0] = Mesh::load("resources/quad.txt");
+	//ground[1] = Mesh::load("resources/quad.txt");
+	//ground[2] = Mesh::load("resources/quad.txt");
+	//ground[3] = Mesh::load("resources/quad.txt");
+	//ground[4] = Mesh::load("resources/quad.txt");
+	//ground[5] = Mesh::load("resources/quad.txt");
 
     int winW, winH;
     SDL_GL_GetDrawableSize(window, &winW, &winH);
@@ -147,6 +147,22 @@ void puma::Puma::init() {
 	}
 
 	lightPosition = glm::vec3(-4.0f, 4.0f, 4.0f);
+
+	GLuint svvb, svib;
+
+	/*
+	glGenVertexArrays(1, &shadowVolumeVao);
+	glBindVertexArray(shadowVolumeVao);
+
+	glGenBuffers(1, &svvb);
+	glBindBuffer(GL_ARRAY_BUFFER, svvb);
+
+	glGenBuffers(1, &svib);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, svib);
+
+	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+	*/
 }
 
 
@@ -389,6 +405,13 @@ void puma::Puma::render() {
 			robotMesh[0].triangleFrontFacing[i] = glm::dot(lightPosition - a, glm::cross(b - a, c - a)) > 0;
 		}
 
+		for (int i = 0; i < robotMesh[0].edgeTriangles.size(); i += 2);
+
+		/*
+		glBindVertexArray(shadowVolumeVao);
+		glBufferData(GL_ARRAY_BUFFER, (shadowVolumeVertices.size()) * sizeof(glm::vec3), shadowVolumeVertices.data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIndices.size() * sizeof(unsigned int), shadowVolumeIndices.data(), GL_DYNAMIC_DRAW);
+		*/
 	}
 
 	// render
@@ -414,9 +437,9 @@ void puma::Puma::render() {
 
 	
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF); // Set any stencil to 1
+	glStencilFunc(GL_ALWAYS, 0x80, 0x80); // Set any stencil to 1
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilMask(0xFF); // Write to stencil buffer
+	glStencilMask(0x80); // Write to stencil buffer
 	glDepthMask(GL_FALSE); // Don't write to depth buffer
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // dont't write to color buffer
 	glClear(GL_STENCIL_BUFFER_BIT);
@@ -437,7 +460,7 @@ void puma::Puma::render() {
 	glCullFace(GL_FRONT);
 	glDepthFunc(GL_LESS);
 
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilFunc(GL_EQUAL, 0x80, 0x80);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	glStencilMask(0x00);
 
@@ -482,9 +505,10 @@ void puma::Puma::renderObjects(glm::mat4 view)
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 	}
 
+	mesh = quadMesh;
+	glBindVertexArray(mesh.vao);
 	for (int i = 0; i < 6; i++) {
-		mesh = ground[i];
-		glBindVertexArray(mesh.vao);
+		
 		glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(groundMatrix[i]));
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 	}
@@ -501,7 +525,7 @@ void puma::Puma::renderParticles(glm::mat4 view) {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
 	glBindVertexArray(particles.vao);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, &particles.particles[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * ParticleSystem::MAX_PARTICLES, particles.particles, GL_STREAM_DRAW);
 
 
 	if (occludingParticles) {
@@ -520,7 +544,7 @@ void puma::Puma::renderParticles(glm::mat4 view) {
 		});
 
 		delete[] distances;
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ParticleSystem::MAX_PARTICLES * sizeof(unsigned int), indices.data(), GL_STREAM_DRAW);
 	}
 
 	glDepthMask(GL_FALSE);

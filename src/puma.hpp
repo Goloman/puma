@@ -72,6 +72,9 @@ private:
     glm::vec3 targetPosition;
 
 	glm::vec3 lightPosition;
+	std::vector<glm::vec3> shadowVolumeVertices;
+	std::vector<unsigned int> shadowVolumeIndices;
+	GLuint shadowVolumeVao;
 
     ParticleSystem particles;
 	bool occludingParticles;
