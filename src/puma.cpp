@@ -572,7 +572,7 @@ void puma::Puma::render() {
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-	glUseProgram(groundElementsProgram);
+	glUseProgram(shadowProgram);
 	glBindVertexArray(shadowVolumeVao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIb);
 	glBindBuffer(GL_ARRAY_BUFFER, shadowVolumeVb);
