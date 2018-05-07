@@ -19,7 +19,7 @@ void main() {
     if (u < 0) discard;
     outColor = vec4(v, 0, age, 1);
     return;
-    */
+    //*/
 
     float r = u + v - 1;
 

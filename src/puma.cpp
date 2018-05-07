@@ -534,7 +534,7 @@ void puma::Puma::render() {
 	glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(groundElementsProgram);
+	glUseProgram(phongProgram);
 
 
 	Mesh mesh = quadMesh;
@@ -549,7 +549,7 @@ void puma::Puma::render() {
 	glEnable(GL_STENCIL_TEST);
 	//glUseProgram(groundElementsProgram);
 	//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
-	glUseProgram(groundElementsProgram);
+	glUseProgram(phongProgram);
 	glStencilFunc(GL_ALWAYS, 0x80, 0x80); // Set any stencil to 1
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0xff); // Write to stencil buffer
@@ -584,21 +584,17 @@ void puma::Puma::render() {
 
 
 	glUseProgram(groundElementsProgram);
+	glBindVertexArray(mesh.vao);
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(GL_TRUE);
-	glBindVertexArray(mesh.vao);
-	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
+	glDisable(GL_STENCIL_TEST);
+	
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 	glDisable(GL_BLEND);
-
-	
-	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	glStencilMask(0x00);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_STENCIL_TEST);
 	
 	//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glUseProgram(shadowProgram);
