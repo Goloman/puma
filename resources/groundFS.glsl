@@ -6,15 +6,18 @@ out vec4 outColor;
 
 vec3 objectColor;
 vec3 lightColor;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
 
 vec3 lightPos;
 vec3 lightPos2;
 
 void main() {
 	lightColor = vec3(1.0f,1.0f,1.0f);
-	objectColor = vec3(0.5f, 0.5f, 0.5f);
-	lightPos = vec3(-4.0f, 4.0f, 4.0f);
-	lightPos2 = vec3(-4.0f, 4.0f, 4.0f);
+	objectColor = vec3(0.4f, 0.4f, 0.4f);
+	lightPos = vec3(4.0f, 4.0f, 4.0f);
+	lightPos2 = vec3(4.0f, 4.0f, 4.0f);
 
 	float specularStrength = 0.7f;
 
@@ -34,6 +37,6 @@ void main() {
     vec3 ambient = ambientStrength * lightColor;
 
     vec3 result = (ambient + diffuse + specular) *  objectColor;
-	outColor = vec4(result, 1.0);
+	outColor =  texture(ourTexture, TexCoord) * vec4(result, 0.5);
 
 }

@@ -11,6 +11,8 @@
 #define M_PI 3.1415926535897932384626433832795
 #include <algorithm> 
 
+
+unsigned int texture;
 void puma::Puma::run() {
     init();
     loop();
@@ -22,13 +24,13 @@ void puma::Puma::init() {
         SDL_Log("%s", SDL_GetError());
         throw std::runtime_error("SDL initialization failed");
     }
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
 
     //window = SDL_CreateWindow("puma", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
     fullscreen = false;
@@ -47,6 +49,19 @@ void puma::Puma::init() {
     // NOTE potentially needed?
     //glewExperimental = GL_TRUE;
     GLenum glewRet = glewInit();
+	GLuint svvb, svib;
+	glGenVertexArrays(1, &shadowVolumeVao);
+	glBindVertexArray(shadowVolumeVao);
+
+	glGenBuffers(1, &svvb);
+	glBindBuffer(GL_ARRAY_BUFFER, svvb);
+
+	glGenBuffers(1, &svib);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, svib);
+
+	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
+
 
 
     phongProgram = glCreateProgram();
@@ -78,6 +93,26 @@ void puma::Puma::init() {
 		SDL_Log("%s", log);
 		throw std::runtime_error("Linking failed");
 	}
+
+	//TEXTURE
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load and generate the texture
+	int width, height, nrChannels;
+	int req_format = STBI_rgb_alpha;
+	unsigned char *data = stbi_load("resources/metal1.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
 
     particleProgram = glCreateProgram();
     vs = createShaderFromFile("resources/particleVS.glsl", GL_VERTEX_SHADER);
@@ -120,9 +155,12 @@ void puma::Puma::init() {
     cameraRotationDegrees = {0, 0};
 
     targetMoveRadius = .3f;
-    plateMatrix = glm::mat4(1);
+	plateMatrix = glm::mat4(1);
+	plateMatrixPrim = glm::mat4(1);
     plateMatrix = glm::translate(plateMatrix, {-1.5, 0.3, 0});
+	plateMatrixPrim = glm::translate(plateMatrix, { -2, 0.3, 0 });
     plateMatrix = glm::rotate(plateMatrix, -glm::pi<float>() / 3, {0, 0, 1});
+	plateMatrixPrim = glm::rotate(plateMatrix, -glm::pi<float>() / 3, { 0, 0, 1 });
     targetPhase = 0.f;
     targetNormal = plateMatrix * glm::vec4(0, 1, 0, 0);
 
@@ -131,7 +169,7 @@ void puma::Puma::init() {
 	groundMatrix[2] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(90.0f), glm::vec3{ 0.0f, 0.0f, 1.0f }), { 4.0f, -5.0f, 0 }), { 10.0f, 10.0f, 10.0f });
 	groundMatrix[3] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(270.0f), glm::vec3{ 0.0f, 0.0f, 1.0f }), { -4.0f, -5.0f, 0 }), { 10.0f, 10.0f, 10.0f });
 	groundMatrix[4] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f }), { 0.0f, -5.0f, -4.0f }), { 10.0f, 10.0f, 10.0f });
-	groundMatrix[5] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(180.0f), glm::vec3{ 0.0f, 1.0f, 0.0f }), { 0, 9.0f, 0 }), { 10.0f, 10.0f, 10.0f });
+	groundMatrix[5] = glm::scale(glm::translate(glm::rotate(glm::mat4(1), (float)radians(180.0f), glm::vec3{ 0.0f, 0.0f, 1.0f }), { 0, -9.0f, 0 }), { 10.0f, 10.0f, 10.0f });
 
 	cylinderMatrix = glm::translate(glm::mat4(1), { 1.0f, -0.8f, -1.0f });
 
@@ -148,21 +186,6 @@ void puma::Puma::init() {
 
 	lightPosition = glm::vec3(-4.0f, 4.0f, 4.0f);
 
-	GLuint svvb, svib;
-
-	/*
-	glGenVertexArrays(1, &shadowVolumeVao);
-	glBindVertexArray(shadowVolumeVao);
-
-	glGenBuffers(1, &svvb);
-	glBindBuffer(GL_ARRAY_BUFFER, svvb);
-
-	glGenBuffers(1, &svib);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, svib);
-
-	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
-	*/
 }
 
 
@@ -427,7 +450,7 @@ void puma::Puma::render() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(phongProgram);
+	glUseProgram(groundElementsProgram);
 
 
 	Mesh mesh = quadMesh;
@@ -435,8 +458,14 @@ void puma::Puma::render() {
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 
-	
+	glBindVertexArray(mesh.vao);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrixPrim));
+	//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
 	glEnable(GL_STENCIL_TEST);
+	//glUseProgram(groundElementsProgram);
+	//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+	glUseProgram(groundElementsProgram);
 	glStencilFunc(GL_ALWAYS, 0x80, 0x80); // Set any stencil to 1
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilMask(0x80); // Write to stencil buffer
@@ -470,20 +499,30 @@ void puma::Puma::render() {
 	//renderObjects(viewMatrix);
 
 
-	glUseProgram(phongProgram);
+	glUseProgram(groundElementsProgram);
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_TRUE);
 	glBindVertexArray(mesh.vao);
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrix));
 	glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+	glDisable(GL_BLEND);
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
-	glUseProgram(phongProgram);
+
+	//glUseProgram(groundElementsProgram);
+	//mesh = quadMesh;
+	//glBindVertexArray(mesh.vao);
+	//glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(plateMatrixPrim));
+	//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+	//glUseProgram(groundElementsProgram);
 
 	renderObjects(viewMatrix);
 	renderParticles(viewMatrix);

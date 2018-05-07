@@ -6,6 +6,9 @@ out vec4 outColor;
 
 vec3 objectColor;
 vec3 lightColor;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
 
 vec3 lightPos;
 vec3 lightPos2;
