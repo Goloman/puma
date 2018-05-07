@@ -600,7 +600,7 @@ void puma::Puma::render() {
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
 	
-
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glUseProgram(phongProgram);
 	renderObjects(viewMatrix);
 
