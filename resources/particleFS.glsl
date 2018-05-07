@@ -15,6 +15,12 @@ void main() {
     float u = 1 - d;
     float v = 1 - age;
 
+    /*
+    if (u < 0) discard;
+    outColor = vec4(v, 0, age, 1);
+    return;
+    */
+
     float r = u + v - 1;
 
     if (r < 0) r = 0;
