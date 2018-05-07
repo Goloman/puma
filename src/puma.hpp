@@ -47,6 +47,7 @@ private:
     GLuint phongProgram;
 	GLuint particleProgram;
 	GLuint groundElementsProgram;
+	GLuint shadowProgram;
 
     bool running;
     bool simulating;
@@ -76,6 +77,8 @@ private:
 	std::vector<glm::vec3> shadowVolumeVertices;
 	std::vector<unsigned int> shadowVolumeIndices;
 	GLuint shadowVolumeVao;
+	GLuint shadowVolumeVb;
+	GLuint shadowVolumeIb;
 
     ParticleSystem particles;
 	bool occludingParticles;

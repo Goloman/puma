@@ -17,6 +17,8 @@ struct ParticleSystem {
     constexpr static const float MAX_AGE = 2.f;
 
     GLuint vao;
+	GLuint vb;
+	GLuint ib;
 
     Particle *particles;
     size_t first;
