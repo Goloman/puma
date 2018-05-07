@@ -37,6 +37,6 @@ void main() {
     vec3 ambient = ambientStrength * lightColor;
 
     vec3 result = (ambient + diffuse + specular) *  objectColor;
-	outColor =  texture(ourTexture, TexCoord) * vec4(result, 0.5);
+	outColor =  texture(ourTexture, TexCoord) * vec4(result, 0.2);
 
 }
