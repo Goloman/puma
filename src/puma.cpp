@@ -600,8 +600,8 @@ void puma::Puma::render() {
 	glDepthMask(GL_TRUE);
 	glDisable(GL_STENCIL_TEST);
 	
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glUseProgram(phongProgram);
+	//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glUseProgram(shadowProgram);
 	renderObjects(viewMatrix);
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -613,6 +613,7 @@ void puma::Puma::render() {
 	glBufferData(GL_ARRAY_BUFFER, (shadowVolumeVertices.size()) * sizeof(glm::vec3), shadowVolumeVertices.data(), GL_DYNAMIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, shadowVolumeIndices.size() * sizeof(unsigned int), shadowVolumeIndices.data(), GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(SHADER_LOCATION_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_MODEL, 1, GL_FALSE, glm::value_ptr(glm::mat4(1)));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
 	glEnableVertexAttribArray(SHADER_LOCATION_POSITION);
@@ -657,7 +658,7 @@ void puma::Puma::render() {
 
 void puma::Puma::renderObjects(glm::mat4 view)
 {
-	glUseProgram(phongProgram);
+	//glUseProgram(phongProgram);
 	Mesh mesh;
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_VIEW, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(SHADER_UNIFORM_LOCATION_PROJECTION, 1, GL_FALSE, glm::value_ptr(projectiomMatrix));
