@@ -11,3 +11,5 @@ spacja                  - zatrzymanie czasu
 f                       - pełny ekran
 tab                     - zmiana rodzaju cząsteczek
 esc                     - zamknięcie programu
+
+https://www.youtube.com/watch?v=jNQ-KVMRBU0
